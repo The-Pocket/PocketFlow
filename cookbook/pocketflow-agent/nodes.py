@@ -18,7 +18,7 @@ class DecideAction(Node):
         
         print(f"🤔 Agent deciding what to do next...")
         
-        # Create a prompt to help the LLM decide what to do next
+        # Create a prompt to help the LLM decide what to do next with proper yaml formatting
         prompt = f"""
 ### CONTEXT
 You are a research assistant that can search the web.
@@ -46,7 +46,12 @@ thinking: |
 action: search OR answer
 reason: <why you chose this action>
 search_query: <specific search query if action is search>
-```"""
+```
+IMPORTANT: Make sure to:
+1. Use proper indentation (4 spaces) for all multi-line fields
+2. Use the | character for multi-line text fields
+3. Keep single-line fields without the | character
+"""
         
         # Call the LLM to make a decision
         response = call_llm(prompt)
@@ -64,6 +69,7 @@ search_query: <specific search query if action is search>
             shared["search_query"] = exec_res["search_query"]
             print(f"🔍 Agent decided to search for: {exec_res['search_query']}")
         else:
+            shared["context"] = exec_res["answer"] #save the context if LLM gives the answer without searching. 
             print(f"💡 Agent decided to answer the question")
         
         # Return the action to determine the next node in the flow
