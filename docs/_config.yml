@@ -13,19 +13,19 @@ nav_sort: case_sensitive
 aux_links:
   "View on GitHub":
     - "//github.com/the-pocket/PocketFlow"
-    
+
 # Color scheme
 color_scheme: light
 
 # Author settings
 author:
-    name: Zachary Huang
-    url: https://www.columbia.edu/~zh2408/
-    twitter: ZacharyHuang12
+  name: Zachary Huang
+  url: https://www.columbia.edu/~zh2408/
+  twitter: ZacharyHuang12
 
 # Mermaid settings
 mermaid:
-  version: "9.1.3"  # Pick the version you want
+  version: "9.1.3" # Pick the version you want
   # Default configuration
   config: |
     directionLR
@@ -41,9 +41,9 @@ callouts:
   best-practice:
     title: Best Practice
     color: green
-  
+
 # The custom navigation
 nav:
-  - Home: index.md       # Link to your main docs index
+  - Home: index.md # Link to your main docs index
   - GitHub: "https://github.com/the-pocket/PocketFlow"
   - Discord: "https://discord.gg/hUHHE9Sa6T"

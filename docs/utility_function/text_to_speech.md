@@ -7,17 +7,18 @@ nav_order: 7
 
 # Text-to-Speech
 
-| **Service**          | **Free Tier**         | **Pricing Model**                                            | **Docs**                                                            |
-|----------------------|-----------------------|--------------------------------------------------------------|---------------------------------------------------------------------|
-| **Amazon Polly**     | 5M std + 1M neural   | ~$4 /M (std), ~$16 /M (neural) after free tier               | [Polly Docs](https://aws.amazon.com/polly/)                         |
-| **Google Cloud TTS** | 4M std + 1M WaveNet  | ~$4 /M (std), ~$16 /M (WaveNet) pay-as-you-go                | [Cloud TTS Docs](https://cloud.google.com/text-to-speech)           |
-| **Azure TTS**        | 500K neural ongoing  | ~$15 /M (neural), discount at higher volumes                 | [Azure TTS Docs](https://azure.microsoft.com/products/cognitive-services/text-to-speech/) |
-| **IBM Watson TTS**   | 10K chars Lite plan  | ~$0.02 /1K (i.e. ~$20 /M). Enterprise options available       | [IBM Watson Docs](https://www.ibm.com/cloud/watson-text-to-speech)   |
-| **ElevenLabs**       | 10K chars monthly    | From ~$5/mo (30K chars) up to $330/mo (2M chars). Enterprise  | [ElevenLabs Docs](https://elevenlabs.io)                            |
+| **Service**          | **Free Tier**       | **Pricing Model**                                            | **Docs**                                                                                  |
+| -------------------- | ------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| **Amazon Polly**     | 5M std + 1M neural  | ~$4 /M (std), ~$16 /M (neural) after free tier               | [Polly Docs](https://aws.amazon.com/polly/)                                               |
+| **Google Cloud TTS** | 4M std + 1M WaveNet | ~$4 /M (std), ~$16 /M (WaveNet) pay-as-you-go                | [Cloud TTS Docs](https://cloud.google.com/text-to-speech)                                 |
+| **Azure TTS**        | 500K neural ongoing | ~$15 /M (neural), discount at higher volumes                 | [Azure TTS Docs](https://azure.microsoft.com/products/cognitive-services/text-to-speech/) |
+| **IBM Watson TTS**   | 10K chars Lite plan | ~$0.02 /1K (i.e. ~$20 /M). Enterprise options available      | [IBM Watson Docs](https://www.ibm.com/cloud/watson-text-to-speech)                        |
+| **ElevenLabs**       | 10K chars monthly   | From ~$5/mo (30K chars) up to $330/mo (2M chars). Enterprise | [ElevenLabs Docs](https://elevenlabs.io)                                                  |
 
 ## Example Python Code
 
 ### Amazon Polly
+
 ```python
 import boto3
 
@@ -36,6 +37,7 @@ with open("polly.mp3", "wb") as f:
 ```
 
 ### Google Cloud TTS
+
 ```python
 from google.cloud import texttospeech
 
@@ -51,6 +53,7 @@ with open("gcloud_tts.mp3", "wb") as f:
 ```
 
 ### Azure TTS
+
 ```python
 import azure.cognitiveservices.speech as speechsdk
 
@@ -67,6 +70,7 @@ synthesizer.speak_text_async("Hello from Azure TTS!").get()
 ```
 
 ### IBM Watson TTS
+
 ```python
 from ibm_watson import TextToSpeechV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
@@ -86,6 +90,7 @@ with open("ibm_tts.mp3", "wb") as f:
 ```
 
 ### ElevenLabs
+
 ```python
 import requests
 
@@ -104,4 +109,3 @@ resp = requests.post(url, headers=headers, json=json_data)
 with open("elevenlabs.mp3", "wb") as f:
     f.write(resp.content)
 ```
-

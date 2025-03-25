@@ -7,13 +7,14 @@ nav_order: 2
 
 # Visualization and Debugging
 
-Similar to LLM wrappers, we **don't** provide built-in visualization and debugging. Here, we recommend some *minimal* (and incomplete) implementations These examples can serve as a starting point for your own tooling.
+Similar to LLM wrappers, we **don't** provide built-in visualization and debugging. Here, we recommend some _minimal_ (and incomplete) implementations These examples can serve as a starting point for your own tooling.
 
 ## 1. Visualization with Mermaid
 
 This code recursively traverses the nested graph, assigns unique IDs to each node, and treats Flow nodes as subgraphs to generate Mermaid syntax for a hierarchical visualization.
 
 {% raw %}
+
 ```python
 def build_mermaid(start):
     ids, visited, lines = {}, set(), ["graph LR"]
@@ -41,8 +42,8 @@ def build_mermaid(start):
     walk(start)
     return "\n".join(lines)
 ```
-{% endraw %}
 
+{% endraw %}
 
 For example, suppose we have a complex Flow for data science:
 
@@ -113,12 +114,12 @@ def get_node_call_stack():
 For example, suppose we have a complex Flow for data science:
 
 ```python
-class DataPrepBatchNode(BatchNode): 
+class DataPrepBatchNode(BatchNode):
     def prep(self, shared): return []
 class ValidateDataNode(Node): pass
 class FeatureExtractionNode(Node): pass
 class TrainModelNode(Node): pass
-class EvaluateModelNode(Node): 
+class EvaluateModelNode(Node):
     def prep(self, shared):
         stack = get_node_call_stack()
         print("Call stack:", stack)

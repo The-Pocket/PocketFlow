@@ -35,10 +35,11 @@ Parallel took:   1.00 seconds
 ## Key Points
 
 - **Sequential**: Total time = sum of all item times
+
   - Good for: Rate-limited APIs, maintaining order
 
 - **Parallel**: Total time ≈ longest single item time
-  - Good for: I/O-bound tasks, independent operations 
+  - Good for: I/O-bound tasks, independent operations
 
 ## Tech Dive Deep
 
@@ -48,5 +49,6 @@ Parallel took:   1.00 seconds
   - See: [OpenAI's async usage](https://github.com/openai/openai-python?tab=readme-ov-file#async-usage)
 
 For maximum performance and cost efficiency, consider using batch APIs:
+
 - [OpenAI's Batch API](https://platform.openai.com/docs/guides/batch) lets you process multiple prompts in a single request
-- Reduces overhead and can be more cost-effective for large workloads 
+- Reduces overhead and can be more cost-effective for large workloads

@@ -3,12 +3,14 @@
 This example demonstrates how to properly integrate SQLite database operations with PocketFlow, focusing on:
 
 1. Clean code organization with separation of concerns:
+
    - Tools layer for database operations (`tools/database.py`)
    - Node implementation for PocketFlow integration (`nodes.py`)
    - Flow configuration (`flow.py`)
    - Safe SQL query execution with parameter binding
 
 2. Best practices for database operations:
+
    - Connection management with proper closing
    - SQL injection prevention using parameterized queries
    - Error handling and resource cleanup
@@ -34,12 +36,14 @@ pocketflow-tool-database/
 ## Setup
 
 1. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -47,11 +51,13 @@ pip install -r requirements.txt
 ## Usage
 
 Run the example:
+
 ```bash
 python main.py
 ```
 
 This will:
+
 1. Initialize a SQLite database with a tasks table
 2. Create an example task
 3. List all tasks in the database
@@ -60,11 +66,13 @@ This will:
 ## Key Concepts Demonstrated
 
 1. **Database Operations**
+
    - Safe connection handling
    - Query parameterization
    - Schema management
 
 2. **Code Organization**
+
    - Clear separation between database operations and PocketFlow components
    - Modular project structure
    - Type hints and documentation

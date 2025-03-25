@@ -5,10 +5,12 @@ This example demonstrates Nested BatchFlow using a simple school grades calculat
 ## What this Example Does
 
 Calculates average grades for:
+
 1. Each student in a class
 2. Each class in the school
 
 ## Structure
+
 ```
 school/
 ├── class_a/
@@ -22,10 +24,12 @@ school/
 ## How it Works
 
 1. **Outer BatchFlow (SchoolBatchFlow)**
+
    - Processes each class folder
    - Returns parameters like: `{"class": "class_a"}`
 
 2. **Inner BatchFlow (ClassBatchFlow)**
+
    - Processes each student file in a class
    - Returns parameters like: `{"student": "student1.txt"}`
 
@@ -61,4 +65,4 @@ School Average: 8.15
 
 1. **Nested BatchFlow**: One BatchFlow inside another
 2. **Parameter Inheritance**: Inner flow gets parameters from outer flow
-3. **Hierarchical Processing**: Process data in a tree-like structure 
+3. **Hierarchical Processing**: Process data in a tree-like structure

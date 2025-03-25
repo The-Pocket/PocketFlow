@@ -17,9 +17,11 @@ For certain LLM tasks like answering questions, providing relevant context is es
 2. **Online stage**: Given a question, generate answers by retrieving the most relevant context.
 
 ---
+
 ## Stage 1: Offline Indexing
 
 We create three Nodes:
+
 1. `ChunkDocs` – [chunks](../utility_function/chunking.md) raw text.
 2. `EmbedDocs` – [embeds](../utility_function/embedding.md) each chunk.
 3. `StoreIndex` – stores embeddings into a [vector database](../utility_function/vector.md).
@@ -40,7 +42,7 @@ class ChunkDocs(BatchNode):
         for i in range(0, len(text), size):
             chunks.append(text[i : i + size])
         return chunks
-    
+
     def post(self, shared, prep_res, exec_res_list):
         # exec_res_list is a list of chunk-lists, one per file.
         # flatten them all into a single list of chunks.
@@ -94,9 +96,11 @@ OfflineFlow.run(shared)
 ```
 
 ---
+
 ## Stage 2: Online Query & Answer
 
 We have 3 nodes:
+
 1. `EmbedQuery` – embeds the user’s question.
 2. `RetrieveDocs` – retrieves top chunk from the index.
 3. `GenerateAnswer` – calls the LLM with the question + chunk to produce the final answer.

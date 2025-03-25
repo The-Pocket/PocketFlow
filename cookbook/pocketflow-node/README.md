@@ -25,6 +25,7 @@ A practical example demonstrating how to use PocketFlow to build a robust text s
 The example implements a simple but robust text summarization workflow:
 
 1. **Summarize Node** (`flow.py`):
+
    - `prep()`: Retrieves text from the shared store
    - `exec()`: Calls LLM to summarize text in 10 words
    - `exec_fallback()`: Provides graceful error handling
@@ -38,20 +39,24 @@ The example implements a simple but robust text summarization workflow:
 ## Setup
 
 1. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. Configure your environment:
+
    - Set up your LLM API key (check utils/call_llm.py for configuration)
 
 4. Run the example:
+
 ```bash
 python main.py
 ```
@@ -79,4 +84,4 @@ This example demonstrates several key PocketFlow concepts:
 
 - [PocketFlow Documentation](https://the-pocket.github.io/PocketFlow/)
 - [Node Concept Guide](https://the-pocket.github.io/PocketFlow/node.html)
-- [Flow Design Patterns](https://the-pocket.github.io/PocketFlow/flow.html) 
+- [Flow Design Patterns](https://the-pocket.github.io/PocketFlow/flow.html)

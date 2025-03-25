@@ -11,6 +11,7 @@ This example demonstrates the BatchFlow concept in PocketFlow by implementing an
   3. Managing parameters across multiple Flow executions
 
 ## Project Structure
+
 ```
 pocketflow-batch-flow/
 ├── README.md
@@ -29,6 +30,7 @@ pocketflow-batch-flow/
 The example processes multiple images with different filters:
 
 1. **Base Flow**: Processes a single image
+
    - Load image
    - Apply filter (grayscale, blur, or sepia)
    - Save processed image
@@ -69,4 +71,4 @@ Check the 'output' directory for results.
 1. **Parameter Management**: Shows how BatchFlow manages different parameter sets
 2. **Flow Reuse**: Demonstrates running the same Flow multiple times
 3. **Batch Processing**: Shows how to process multiple items efficiently
-4. **Real-world Application**: Provides a practical example of batch processing 
+4. **Real-world Application**: Provides a practical example of batch processing

@@ -12,21 +12,25 @@ This project demonstrates an extended thinking mode implementation that enables 
 ## Getting Started
 
 1. Install the required packages:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set up your API key:
+
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
 ```
 
 3. Run a test problem to see thinking mode in action:
+
 ```bash
 python main.py
 ```
 
 4. Try your own reasoning problem:
+
 ```bash
 python main.py --"Your complex reasoning problem here"
 ```
@@ -41,6 +45,7 @@ flowchart LR
 ```
 
 Each time the node loops, it:
+
 1. Reads the problem and previous thoughts
 2. Generates the next thought or final solution
 3. Decides whether more thinking is needed
@@ -63,11 +68,11 @@ This problem demonstrates why extended thinking is valuable:
 - **Models with extended thinking**: Find the correct answer (0.386)
 
 For comparison:
+
 - [Claude 3.7 Sonnet (without thinking)](https://claude.ai/share/31bf938c-94dd-42f6-bfac-e82ba3616dbc): Wrong answer
 - [Claude 3.7 Sonnet with thinking](https://claude.ai/share/0863f9fd-ae75-4a0c-84ee-f7443d2fcf4a): Correct answer after 4.5 min
 - [GPT-o1 with thinking](https://chatgpt.com/c/67dcbad0-75c8-8000-a538-ee6df8083832): Correct answer after 0.5 min
 - [GPT-o1 pro with thinking](https://chatgpt.com/share/67dcb1bf-ceb0-8000-823a-8ce894032e37): Correct answer after 1.5 min
-
 
 Below is an example of how Claude 3.7 Sonnet (without native thinking) to solve this complex problem, and get the correct result:
 
@@ -87,7 +92,7 @@ Next thought needed: True
 Total thoughts estimate: 8
 --------------------------------------------------
 
-Thought 2: Let me set up the problem mathematically. Let's say the original stick has length 1. 
+Thought 2: Let me set up the problem mathematically. Let's say the original stick has length 1.
 
 First break: We break the stick at a point X, where X is chosen uniformly from [0,1]. This gives us two pieces with lengths X and 1-X.
 

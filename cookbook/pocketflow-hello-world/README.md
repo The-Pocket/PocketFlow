@@ -16,17 +16,20 @@ Your first PocketFlow application! This simple example demonstrates how to creat
 ## Setup
 
 1. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. Run the example:
+
 ```bash
 python main.py
 ```
@@ -39,4 +42,4 @@ python main.py
 
 ## Additional Resources
 
-- [PocketFlow Documentation](https://the-pocket.github.io/PocketFlow/) 
+- [PocketFlow Documentation](https://the-pocket.github.io/PocketFlow/)

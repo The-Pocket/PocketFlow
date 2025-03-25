@@ -1,7 +1,9 @@
 # Chain of Thought Node
 
 ## 1. Requirements
+
 Create a self-looping Chain of Thought node that can:
+
 - Generate thoughts to solve a problem step by step
 - Revise previous thoughts when necessary
 - Branch to explore alternative approaches
@@ -10,6 +12,7 @@ Create a self-looping Chain of Thought node that can:
 - Provide a final solution when reasoning is complete
 
 ## 2. Flow Design
+
 This will be a simple flow with a single node that can call itself repeatedly:
 
 ```mermaid
@@ -18,11 +21,15 @@ flowchart LR
 ```
 
 ## 3. Utilities
+
 We'll need one primary utility function:
+
 - `call_llm`: Call LLM to generate the next thought based on the problem and previous thoughts
 
 ## 4. Node Design
+
 ### Shared Store Design
+
 ```python
 shared = {
     "problem": "The problem statement goes here",
@@ -34,6 +41,7 @@ shared = {
 ```
 
 Each thought in the "thoughts" list will be a dictionary with:
+
 ```python
 {
     "content": "The actual thought text",
@@ -47,6 +55,7 @@ Each thought in the "thoughts" list will be a dictionary with:
 ```
 
 ### Chain of Thought Node
+
 - `type`: Regular (self-looping)
 - `prep`: Read the problem and all thoughts so far from shared store
 - `exec`: Call LLM to generate next thought or solution

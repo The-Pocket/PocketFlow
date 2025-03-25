@@ -7,7 +7,7 @@ nav_order: 6
 
 # (Advanced) Multi-Agents
 
-Multiple [Agents](./flow.md) can work together by handling subtasks and communicating the progress. 
+Multiple [Agents](./flow.md) can work together by handling subtasks and communicating the progress.
 Communication between agents is typically implemented using message queues in shared storage.
 
 > Most of time, you don't need Multi-Agents. Start with a simple solution first.
@@ -15,7 +15,7 @@ Communication between agents is typically implemented using message queues in sh
 
 ### Example Agent Communication: Message Queue
 
-Here's a simple example showing how to implement agent communication using `asyncio.Queue`. 
+Here's a simple example showing how to implement agent communication using `asyncio.Queue`.
 The agent listens for messages, processes them, and continues listening:
 
 ```python
@@ -40,7 +40,7 @@ async def send_system_messages(message_queue):
         "Network connectivity: stable",
         "Processing load: optimal"
     ]
-    
+
     while True:
         message = f"{messages[counter % len(messages)]} | timestamp_{counter}"
         await message_queue.put(message)
@@ -51,13 +51,13 @@ async def main():
     message_queue = asyncio.Queue()
     shared = {}
     flow.set_params({"messages": message_queue})
-    
+
     # Run both coroutines
     await asyncio.gather(
         flow.run_async(shared),
         send_system_messages(message_queue)
     )
-    
+
 asyncio.run(main())
 ```
 
@@ -72,7 +72,7 @@ Agent received: Processing load: optimal | timestamp_3
 
 ### Interactive Multi-Agent Example: Taboo Game
 
-Here's a more complex example where two agents play the word-guessing game Taboo. 
+Here's a more complex example where two agents play the word-guessing game Taboo.
 One agent provides hints while avoiding forbidden words, and another agent tries to guess the target word:
 
 ```python
@@ -91,7 +91,7 @@ class AsyncHinter(AsyncNode):
         if past_guesses:
             prompt += f"\nPrevious wrong guesses: {past_guesses}\nMake hint more specific."
         prompt += "\nUse at most 5 words."
-        
+
         hint = call_llm(prompt)
         print(f"\nHinter: Here's your hint - {hint}")
         return hint
@@ -119,11 +119,11 @@ class AsyncGuesser(AsyncNode):
             print("Game Over - Correct guess!")
             await shared["hinter_queue"].put("GAME_OVER")
             return "end"
-            
+
         if "past_guesses" not in shared:
             shared["past_guesses"] = []
         shared["past_guesses"].append(exec_res)
-        
+
         await shared["hinter_queue"].put(exec_res)
         return "continue"
 
@@ -135,7 +135,7 @@ async def main():
         "hinter_queue": asyncio.Queue(),
         "guesser_queue": asyncio.Queue()
     }
-    
+
     print("Game starting!")
     print(f"Target word: {shared['target_word']}")
     print(f"Forbidden words: {shared['forbidden_words']}")

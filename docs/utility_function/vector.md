@@ -7,25 +7,26 @@ nav_order: 6
 
 # Vector Databases
 
+Below is a table of the popular vector search solutions:
 
-Below is a  table of the popular vector search solutions:
-
-| **Tool** | **Free Tier** | **Pricing Model** | **Docs** |
-| --- | --- | --- | --- |
-| **FAISS** | N/A, self-host | Open-source | [Faiss.ai](https://faiss.ai) |
-| **Pinecone** | 2GB free | From $25/mo | [pinecone.io](https://pinecone.io) |
-| **Qdrant** | 1GB free cloud | Pay-as-you-go | [qdrant.tech](https://qdrant.tech) |
-| **Weaviate** | 14-day sandbox | From $25/mo | [weaviate.io](https://weaviate.io) |
-| **Milvus** | 5GB free cloud | PAYG or $99/mo dedicated | [milvus.io](https://milvus.io) |
-| **Chroma** | N/A, self-host | Free (Apache 2.0) | [trychroma.com](https://trychroma.com) |
-| **Redis** | 30MB free | From $5/mo | [redis.io](https://redis.io) |
+| **Tool**     | **Free Tier**  | **Pricing Model**        | **Docs**                               |
+| ------------ | -------------- | ------------------------ | -------------------------------------- |
+| **FAISS**    | N/A, self-host | Open-source              | [Faiss.ai](https://faiss.ai)           |
+| **Pinecone** | 2GB free       | From $25/mo              | [pinecone.io](https://pinecone.io)     |
+| **Qdrant**   | 1GB free cloud | Pay-as-you-go            | [qdrant.tech](https://qdrant.tech)     |
+| **Weaviate** | 14-day sandbox | From $25/mo              | [weaviate.io](https://weaviate.io)     |
+| **Milvus**   | 5GB free cloud | PAYG or $99/mo dedicated | [milvus.io](https://milvus.io)         |
+| **Chroma**   | N/A, self-host | Free (Apache 2.0)        | [trychroma.com](https://trychroma.com) |
+| **Redis**    | 30MB free      | From $5/mo               | [redis.io](https://redis.io)           |
 
 ---
+
 ## Example Python Code
 
 Below are basic usage snippets for each tool.
 
 ### FAISS
+
 ```python
 import faiss
 import numpy as np
@@ -49,6 +50,7 @@ print("Neighbors:", I)
 ```
 
 ### Pinecone
+
 ```python
 import pinecone
 
@@ -76,6 +78,7 @@ print(response)
 ```
 
 ### Qdrant
+
 ```python
 import qdrant_client
 from qdrant_client.models import Distance, VectorParams, PointStruct
@@ -107,6 +110,7 @@ print(results)
 ```
 
 ### Weaviate
+
 ```python
 import weaviate
 
@@ -139,6 +143,7 @@ print(resp)
 ```
 
 ### Milvus
+
 ```python
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection
 import numpy as np
@@ -170,6 +175,7 @@ print(results)
 ```
 
 ### Chroma
+
 ```python
 import chromadb
 from chromadb.config import Settings
@@ -191,6 +197,7 @@ print(res)
 ```
 
 ### Redis
+
 ```python
 import redis
 import struct
@@ -215,4 +222,3 @@ q = "*=>[KNN 3 @embedding $BLOB AS dist]"
 res = r.ft("my_idx").search(q, query_params={"BLOB": qvec})
 print(res.docs)
 ```
-

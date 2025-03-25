@@ -9,16 +9,15 @@ nav_order: 3
 
 Nodes and Flows **communicate** in 2 ways:
 
-1. **Shared Store (for almost all the cases)** 
+1. **Shared Store (for almost all the cases)**
 
-   - A global data structure (often an in-mem dict) that all nodes can read ( `prep()`) and write (`post()`).  
+   - A global data structure (often an in-mem dict) that all nodes can read ( `prep()`) and write (`post()`).
    - Great for data results, large content, or anything multiple nodes need.
    - You shall design the data structure and populate it ahead.
-     
-   - > **Separation of Concerns:** Use `Shared Store` for almost all cases to separate *Data Schema* from *Compute Logic*!  This approach is both flexible and easy to manage, resulting in more maintainable code. `Params` is more a syntax sugar for [Batch](./batch.md).
+   - > **Separation of Concerns:** Use `Shared Store` for almost all cases to separate _Data Schema_ from _Compute Logic_! This approach is both flexible and easy to manage, resulting in more maintainable code. `Params` is more a syntax sugar for [Batch](./batch.md).
      {: .best-practice }
 
-2. **Params (only for [Batch](./batch.md))** 
+2. **Params (only for [Batch](./batch.md))**
    - Each node has a local, ephemeral `params` dict passed in by the **parent Flow**, used as an identifier for tasks. Parameter keys and values shall be **immutable**.
    - Good for identifiers like filenames or numeric IDs, in Batch mode.
 
@@ -31,6 +30,7 @@ If you know memory management, think of the **Shared Store** like a **heap** (sh
 ### Overview
 
 A shared store is typically an in-mem dictionary, like:
+
 ```python
 shared = {"data": {}, "summary": {}, "config": {...}, ...}
 ```
@@ -72,6 +72,7 @@ flow.run(shared)
 ```
 
 Here:
+
 - `LoadData` writes to `shared["data"]`.
 - `Summarize` reads from `shared["data"]`, summarizes, and writes to `shared["summary"]`.
 
@@ -79,13 +80,14 @@ Here:
 
 ## 2. Params
 
-**Params** let you store *per-Node* or *per-Flow* config that doesn't need to live in the shared store. They are:
+**Params** let you store _per-Node_ or _per-Flow_ config that doesn't need to live in the shared store. They are:
+
 - **Immutable** during a Node's run cycle (i.e., they don't change mid-`prep->exec->post`).
 - **Set** via `set_params()`.
 - **Cleared** and updated each time a parent Flow calls it.
 
-> Only set the uppermost Flow params because others will be overwritten by the parent Flow. 
-> 
+> Only set the uppermost Flow params because others will be overwritten by the parent Flow.
+>
 > If you need to set child node params, see [Batch](./batch.md).
 {: .warning }
 

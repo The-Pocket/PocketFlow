@@ -1,7 +1,8 @@
 # Your Project Title
 
 ## Project Requirements
-A description of the project requirements. 
+
+A description of the project requirements.
 
 ## Utility Functions
 
@@ -34,13 +35,15 @@ shared = {
 ## Node Designs
 
 ### 1. First Node
+
 - **Purpose**: What the node does
 - **Design**: Regular Node (no Batch/Async)
-- **Data Access**: 
+- **Data Access**:
   - Read: "key" from shared store
   - Write: "key" to shared store
 
 ### 2. Second Node
+
 ...
 
 ### 3. Third Node

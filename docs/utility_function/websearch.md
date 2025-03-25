@@ -4,22 +4,24 @@ title: "Web Search"
 parent: "Utility Function"
 nav_order: 3
 ---
+
 # Web Search
 
 We recommend some implementations of commonly used web search tools.
 
-| **API**                         | **Free Tier**                                | **Pricing Model**                                              | **Docs**                                                  |
-|---------------------------------|-----------------------------------------------|-----------------------------------------------------------------|------------------------------------------------------------------------|
-| **Google Custom Search JSON API** | 100 queries/day free       | $5 per 1000 queries.           | [Link](https://developers.google.com/custom-search/v1/overview)        |
-| **Bing Web Search API**         | 1,000 queries/month               | $15–$25 per 1,000 queries. | [Link](https://azure.microsoft.com/en-us/services/cognitive-services/bing-web-search-api/) |
-| **DuckDuckGo Instant Answer**   | Completely free (Instant Answers only, **no URLs**) | No paid plans; usage unlimited, but data is limited             | [Link](https://duckduckgo.com/api)                                     |
-| **Brave Search API**         | 2,000 queries/month free | $3 per 1k queries for Base, $5 per 1k for Pro | [Link](https://brave.com/search/api/)                                  |
-| **SerpApi**              | 100 searches/month free            | Start at $75/month for 5,000 searches| [Link](https://serpapi.com/)                                             |
-| **RapidAPI**           | Many  options    | Many  options             | [Link](https://rapidapi.com/search?term=search&sortBy=ByRelevance)      |
+| **API**                           | **Free Tier**                                       | **Pricing Model**                                   | **Docs**                                                                                   |
+| --------------------------------- | --------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Google Custom Search JSON API** | 100 queries/day free                                | $5 per 1000 queries.                                | [Link](https://developers.google.com/custom-search/v1/overview)                            |
+| **Bing Web Search API**           | 1,000 queries/month                                 | $15–$25 per 1,000 queries.                          | [Link](https://azure.microsoft.com/en-us/services/cognitive-services/bing-web-search-api/) |
+| **DuckDuckGo Instant Answer**     | Completely free (Instant Answers only, **no URLs**) | No paid plans; usage unlimited, but data is limited | [Link](https://duckduckgo.com/api)                                                         |
+| **Brave Search API**              | 2,000 queries/month free                            | $3 per 1k queries for Base, $5 per 1k for Pro       | [Link](https://brave.com/search/api/)                                                      |
+| **SerpApi**                       | 100 searches/month free                             | Start at $75/month for 5,000 searches               | [Link](https://serpapi.com/)                                                               |
+| **RapidAPI**                      | Many options                                        | Many options                                        | [Link](https://rapidapi.com/search?term=search&sortBy=ByRelevance)                         |
 
 ## Example Python Code
 
 ### 1. Google Custom Search JSON API
+
 ```python
 import requests
 
@@ -40,6 +42,7 @@ print(results)
 ```
 
 ### 2. Bing Web Search API
+
 ```python
 import requests
 
@@ -56,6 +59,7 @@ print(results)
 ```
 
 ### 3. DuckDuckGo Instant Answer
+
 ```python
 import requests
 
@@ -72,6 +76,7 @@ print(results)
 ```
 
 ### 4. Brave Search API
+
 ```python
 import requests
 
@@ -92,6 +97,7 @@ print(results)
 ```
 
 ### 5. SerpApi
+
 ```python
 import requests
 
@@ -109,5 +115,3 @@ response = requests.get(url, params=params)
 results = response.json()
 print(results)
 ```
-
-

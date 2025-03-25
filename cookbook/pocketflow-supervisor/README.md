@@ -11,6 +11,7 @@ This project demonstrates a supervisor that oversees an unreliable [research age
 ## Getting Started
 
 1. Install the packages you need with this simple command:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -52,12 +53,13 @@ graph TD
         DecideAction -->|"answer"| UnreliableAnswerNode
         SearchWeb -->|"decide"| DecideAction
     end
-    
+
     InnerAgent --> SupervisorNode
     SupervisorNode -->|"retry"| InnerAgent
 ```
 
 Here's what each part does:
+
 1. **DecideAction**: The brain that figures out whether to search or answer based on current context
 2. **SearchWeb**: The researcher that goes out and finds information using web search
 3. **UnreliableAnswerNode**: Generates answers (with a 50% chance of being unreliable)

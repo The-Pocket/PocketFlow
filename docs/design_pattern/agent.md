@@ -15,11 +15,11 @@ Agent is a powerful design pattern in which nodes can take dynamic actions based
 
 ## Implement Agent with Graph
 
-1. **Context and Action:** Implement nodes that supply context and perform actions.  
+1. **Context and Action:** Implement nodes that supply context and perform actions.
 2. **Branching:** Use branching to connect each action node to an agent node. Use action to allow the agent to direct the [flow](../core_abstraction/flow.md) between nodes—and potentially loop back for multi-step.
 3. **Agent Node:** Provide a prompt to decide action—for example:
 
-```python
+````python
 f"""
 ### CONTEXT
 Task: {task_description}
@@ -48,13 +48,13 @@ action: <action_name>
 parameters:
     <parameter_name>: <parameter_value>
 ```"""
-```
+````
 
 The core of building **high-performance** and **reliable** agents boils down to:
 
-1. **Context Management:** Provide *relevant, minimal context.* For example, rather than including an entire chat history, retrieve the most relevant via [RAG](./rag.md). Even with larger context windows, LLMs still fall victim to ["lost in the middle"](https://arxiv.org/abs/2307.03172), overlooking mid-prompt content.
+1. **Context Management:** Provide _relevant, minimal context._ For example, rather than including an entire chat history, retrieve the most relevant via [RAG](./rag.md). Even with larger context windows, LLMs still fall victim to ["lost in the middle"](https://arxiv.org/abs/2307.03172), overlooking mid-prompt content.
 
-2. **Action Space:** Provide *a well-structured and unambiguous* set of actions—avoiding overlap like separate `read_databases` or  `read_csvs`. Instead, import CSVs into the database.
+2. **Action Space:** Provide _a well-structured and unambiguous_ set of actions—avoiding overlap like separate `read_databases` or `read_csvs`. Instead, import CSVs into the database.
 
 ## Example Good Action Design
 
@@ -69,17 +69,18 @@ The core of building **high-performance** and **reliable** agents boils down to:
 ## Example: Search Agent
 
 This agent:
+
 1. Decides whether to search or answer
 2. If searches, loops back to decide if more search needed
 3. Answers when enough context gathered
 
-```python
+````python
 class DecideAction(Node):
     def prep(self, shared):
         context = shared.get("context", "No previous search")
         query = shared["query"]
         return query, context
-        
+
     def exec(self, inputs):
         query, context = inputs
         prompt = f"""
@@ -95,14 +96,14 @@ search_term: search phrase if action is search
         resp = call_llm(prompt)
         yaml_str = resp.split("```yaml")[1].split("```")[0].strip()
         result = yaml.safe_load(yaml_str)
-        
+
         assert isinstance(result, dict)
         assert "action" in result
         assert "reason" in result
         assert result["action"] in ["search", "answer"]
         if result["action"] == "search":
             assert "search_term" in result
-        
+
         return result
 
     def post(self, shared, prep_res, exec_res):
@@ -113,21 +114,21 @@ search_term: search phrase if action is search
 class SearchWeb(Node):
     def prep(self, shared):
         return shared["search_term"]
-        
+
     def exec(self, search_term):
         return search_web(search_term)
-    
+
     def post(self, shared, prep_res, exec_res):
         prev_searches = shared.get("context", [])
         shared["context"] = prev_searches + [
             {"term": shared["search_term"], "result": exec_res}
         ]
         return "decide"
-        
+
 class DirectAnswer(Node):
     def prep(self, shared):
         return shared["query"], shared.get("context", "")
-        
+
     def exec(self, inputs):
         query, context = inputs
         return call_llm(f"Context: {context}\nAnswer: {query}")
@@ -147,4 +148,4 @@ search - "decide" >> decide  # Loop back
 
 flow = Flow(start=decide)
 flow.run({"query": "Who won the Nobel Prize in Physics 2024?"})
-```
+````

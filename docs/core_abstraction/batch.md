@@ -8,6 +8,7 @@ nav_order: 4
 # Batch
 
 **Batch** makes it easier to handle large inputs in one Node or **rerun** a Flow multiple times. Example use cases:
+
 - **Chunk-based** processing (e.g., splitting large texts).
 - **Iterative** processing over lists of input items (e.g., user queries, files, URLs).
 
@@ -18,7 +19,6 @@ A **BatchNode** extends `Node` but changes `prep()` and `exec()`:
 - **`prep(shared)`**: returns an **iterable** (e.g., list, generator).
 - **`exec(item)`**: called **once** per item in that iterable.
 - **`post(shared, prep_res, exec_res_list)`**: after all items are processed, receives a **list** of results (`exec_res_list`) and returns an **Action**.
-
 
 ### Example: Summarize a Large File
 
@@ -52,7 +52,6 @@ flow.run(shared)
 
 A **BatchFlow** runs a **Flow** multiple times, each time with different `params`. Think of it as a loop that replays the Flow for each parameter set.
 
-
 ### Example: Summarize Many Files
 
 ```python
@@ -71,6 +70,7 @@ summarize_all_files.run(shared)
 ```
 
 ### Under the Hood
+
 1. `prep(shared)` returns a list of param dicts—e.g., `[{filename: "file1.txt"}, {filename: "file2.txt"}, ...]`.
 2. The **BatchFlow** loops through each dict. For each one:
    - It merges the dict with the BatchFlow’s own `params`.
@@ -82,6 +82,7 @@ summarize_all_files.run(shared)
 ## 3. Nested or Multi-Level Batches
 
 You can nest a **BatchFlow** in another **BatchFlow**. For instance:
+
 - **Outer** batch: returns a list of diretory param dicts (e.g., `{"directory": "/pathA"}`, `{"directory": "/pathB"}`, ...).
 - **Inner** batch: returning a list of per-file param dicts.
 
