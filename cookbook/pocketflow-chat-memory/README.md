@@ -1,6 +1,6 @@
 # PocketFlow Chat with Memory
 
-A chat application with memory retrieval using PocketFlow. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context. 
+A chat application with memory retrieval using PocketFlow. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.
 
 This implementation is based directly on the tutorial: [Build AI Agent Memory From Scratch — Tutorial For Dummies](https://zacharyhuang.substack.com/p/build-ai-agent-memory-from-scratch).
 
@@ -14,16 +14,17 @@ This implementation is based directly on the tutorial: [Build AI Agent Memory Fr
 ## Run It
 
 1. Make sure your OpenAI API key is set:
-    ```bash
-    export OPENAI_API_KEY="your-api-key-here"
-    ```
+
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
 
 2. Install requirements and run the application:
-    ```bash
-    pip install -r requirements.txt
-    python main.py
-    ```
-    
+   ```bash
+   pip install -r requirements.txt
+   python main.py
+   ```
+
 ## How It Works
 
 ```mermaid
@@ -36,6 +37,7 @@ flowchart LR
 ```
 
 The chat application uses:
+
 - Four specialized nodes:
   - `GetUserQuestionNode`: Handles interactive user input
   - `RetrieveNode`: Finds relevant past conversations using vector similarity
@@ -49,7 +51,6 @@ The chat application uses:
 - [`flow.py`](./flow.py): Chat flow structure definition
 - [`main.py`](./main.py): Entry point for running the demo
 - [`utils/`](./utils/): Utility functions for embeddings, LLM calls, and vector operations
-
 
 ## Example Output
 

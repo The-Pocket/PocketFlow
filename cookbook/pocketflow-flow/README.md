@@ -38,6 +38,7 @@ graph TD
 ```
 
 Here's what each part does:
+
 1. **TextInput Node**: Collects text input and handles menu choices
 2. **TextTransform Node**: Applies the selected transformation to the text
 

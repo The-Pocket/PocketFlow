@@ -10,6 +10,7 @@ nav_order: 5
 In many use cases, you may want the LLM to output a specific structure, such as a list or a dictionary with predefined keys.
 
 There are several approaches to achieve a structured output:
+
 - **Prompting** the LLM to strictly return a defined structure.
 - Using LLMs that natively support **schema enforcement**.
 - **Post-processing** the LLM's response to extract structured content.
@@ -18,7 +19,7 @@ In practice, **Prompting** is simple and reliable for modern LLMs.
 
 ### Example Use Cases
 
-- Extracting Key Information 
+- Extracting Key Information
 
 ```yaml
 product:
@@ -50,12 +51,13 @@ server:
 ## Prompt Engineering
 
 When prompting the LLM to produce **structured** output:
+
 1. **Wrap** the structure in code fences (e.g., `yaml`).
 2. **Validate** that all required fields exist (and let `Node` handles retry).
 
 ### Example Text Summarization
 
-```python
+````python
 class SummarizeNode(Node):
     def exec(self, prep_res):
         # Suppose `prep_res` is the text to summarize.
@@ -81,7 +83,7 @@ summary:
         assert isinstance(structured_result["summary"], list)
 
         return structured_result
-```
+````
 
 > Besides using `assert` statements, another popular way to validate schemas is [Pydantic](https://github.com/pydantic/pydantic)
 {: .note }
@@ -90,7 +92,7 @@ summary:
 
 Current LLMs struggle with escaping. YAML is easier with strings since they don't always need quotes.
 
-**In JSON**  
+**In JSON**
 
 ```json
 {
@@ -101,7 +103,7 @@ Current LLMs struggle with escaping. YAML is easier with strings since they don'
 - Every double quote inside the string must be escaped with `\"`.
 - Each newline in the dialogue must be represented as `\n`.
 
-**In YAML**  
+**In YAML**
 
 ```yaml
 dialogue: |

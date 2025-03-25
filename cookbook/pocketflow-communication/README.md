@@ -35,6 +35,7 @@ python main.py
 ```
 
 Enter text when prompted. The program will:
+
 1. Count words in the text
 2. Store statistics in the shared store
 3. Display running statistics (total texts, total words, average)
@@ -49,4 +50,4 @@ The example uses three nodes:
 2. `WordCounter`: Counts words and updates statistics in the shared store
 3. `ShowStats`: Displays statistics from the shared store
 
-This demonstrates how nodes can share and maintain state using the shared store pattern. 
+This demonstrates how nodes can share and maintain state using the shared store pattern.

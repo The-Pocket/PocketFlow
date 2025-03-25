@@ -1,27 +1,22 @@
-
 <div align="center">
   <img src="./assets/title.png" width="600"/>
 </div>
 
-
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://the-pocket.github.io/PocketFlow/)
- <a href="https://discord.gg/hUHHE9Sa6T">
-    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
+<a href="https://discord.gg/hUHHE9Sa6T">
+<img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
 Pocket Flow is a [100-line](pocketflow/__init__.py) minimalist LLM framework
 
 - **Lightweight**: Just 100 lines. Zero bloat, zero dependencies, zero vendor lock-in.
-  
 - **Expressive**: Everything you love—([Multi-](https://the-pocket.github.io/PocketFlow/design_pattern/multi_agent.html))[Agents](https://the-pocket.github.io/PocketFlow/design_pattern/agent.html), [Workflow](https://the-pocket.github.io/PocketFlow/design_pattern/workflow.html), [RAG](https://the-pocket.github.io/PocketFlow/design_pattern/rag.html), and more.
 
 - **[Agentic Coding](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
 
-- To install, ```pip install pocketflow```or just copy the [source code](pocketflow/__init__.py) (only 100 lines).
-  
+- To install, `pip install pocketflow`or just copy the [source code](pocketflow/__init__.py) (only 100 lines).
 - To learn more, check out the [documentation](https://the-pocket.github.io/PocketFlow/). For an in-depth design dive, read the [essay](https://github.com/The-Pocket/.github/blob/main/profile/pocketflow.md).
-  
 - 🎉 We now have a [discord](https://discord.gg/hUHHE9Sa6T)!
 
 ## Why Pocket Flow?
@@ -31,15 +26,14 @@ Current LLM frameworks are bloated... You only need 100 lines for LLM Framework!
 <div align="center">
   <img src="./assets/meme.jpg" width="400"/>
 
-
-  |                | **Abstraction**          | **App-Specific Wrappers**                                      | **Vendor-Specific Wrappers**                                    | **Lines**       | **Size**    |
-|----------------|:-----------------------------: |:-----------------------------------------------------------:|:------------------------------------------------------------:|:---------------:|:----------------------------:|
-| LangChain  | Agent, Chain               | Many <br><sup><sub>(e.g., QA, Summarization)</sub></sup>              | Many <br><sup><sub>(e.g., OpenAI, Pinecone, etc.)</sub></sup>                   | 405K          | +166MB                     |
-| CrewAI     | Agent, Chain            | Many <br><sup><sub>(e.g., FileReadTool, SerperDevTool)</sub></sup>         | Many <br><sup><sub>(e.g., OpenAI, Anthropic, Pinecone, etc.)</sub></sup>        | 18K           | +173MB                     |
-| SmolAgent   | Agent                      | Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup>         | Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup>           | 8K            | +198MB                     |
-| LangGraph   | Agent, Graph           | Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>                     | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup>        | 37K           | +51MB                      |
-| AutoGen    | Agent                | Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>              | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup>        | 7K <br><sup><sub>(core-only)</sub></sup>    | +26MB <br><sup><sub>(core-only)</sub></sup>          |
-| **PocketFlow** | **Graph**                    | **None**                                                 | **None**                                                  | **100**       | **+56KB**                  |
+|                | **Abstraction** |                     **App-Specific Wrappers**                      |                       **Vendor-Specific Wrappers**                       |                **Lines**                 |                  **Size**                   |
+| -------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
+| LangChain      |  Agent, Chain   |      Many <br><sup><sub>(e.g., QA, Summarization)</sub></sup>      |      Many <br><sup><sub>(e.g., OpenAI, Pinecone, etc.)</sub></sup>       |                   405K                   |                   +166MB                    |
+| CrewAI         |  Agent, Chain   | Many <br><sup><sub>(e.g., FileReadTool, SerperDevTool)</sub></sup> | Many <br><sup><sub>(e.g., OpenAI, Anthropic, Pinecone, etc.)</sub></sup> |                   18K                    |                   +173MB                    |
+| SmolAgent      |      Agent      |   Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup>   |  Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
+| LangGraph      |  Agent, Graph   |       Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>       | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
+| AutoGen        |      Agent      |   Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>    | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core-only)</sub></sup> | +26MB <br><sup><sub>(core-only)</sub></sup> |
+| **PocketFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **100**                  |                  **+56KB**                  |
 
 </div>
 
@@ -47,6 +41,7 @@ Current LLM frameworks are bloated... You only need 100 lines for LLM Framework!
 
 The [100 lines](pocketflow/__init__.py) capture the core abstraction of LLM frameworks: Graph!
 <br>
+
 <div align="center">
   <img src="./assets/abstraction.png" width="900"/>
 </div>
@@ -54,6 +49,7 @@ The [100 lines](pocketflow/__init__.py) capture the core abstraction of LLM fram
 
 From there, it's easy to implement popular design patterns like ([Multi-](https://the-pocket.github.io/PocketFlow/design_pattern/multi_agent.html))[Agents](https://the-pocket.github.io/PocketFlow/design_pattern/agent.html), [Workflow](https://the-pocket.github.io/PocketFlow/design_pattern/workflow.html), [RAG](https://the-pocket.github.io/PocketFlow/design_pattern/rag.html), etc.
 <br>
+
 <div align="center">
   <img src="./assets/design.png" width="900"/>
 </div>
@@ -76,14 +72,13 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 | [Thinking](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-thinking) | ★☆☆ <br> *Beginner*   | Solve complex reasoning problems through Chain-of-Thought |
 | [Memory](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-chat-memory) | ★☆☆ <br> *Beginner* | A chat bot with short-term and long-term memory |
 
-
 </div>
 
 👀 Want to see other tutorials for dummies? [Create an issue!](https://github.com/The-Pocket/PocketFlow/issues/new)
 
 ## How to Use Pocket Flow?
 
-🚀 Through **Agentic Coding**—the fastest LLM App development paradigm-where *humans design* and *agents code*!
+🚀 Through **Agentic Coding**—the fastest LLM App development paradigm-where _humans design_ and _agents code_!
 
 <br>
 <div align="center">
@@ -107,18 +102,6 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 </div>
 
 - Want to learn **Agentic Coding**?
-  - To setup, read this [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)! 
+  - To setup, read this [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)!
   - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://the-pocket.github.io/PocketFlow/guide.html)!
-  
 - Want to build your own LLM App? Start with [this template](https://github.com/The-Pocket/PocketFlow-Template-Python)!
-
-
-
-
-
-
-
-
-
-
-

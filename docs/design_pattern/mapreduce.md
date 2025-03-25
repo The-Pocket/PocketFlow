@@ -8,10 +8,11 @@ nav_order: 4
 # Map Reduce
 
 MapReduce is a design pattern suitable when you have either:
+
 - Large input data (e.g., multiple files to process), or
 - Large output data (e.g., multiple forms to fill)
 
-and there is a logical way to break the task into smaller, ideally independent parts. 
+and there is a logical way to break the task into smaller, ideally independent parts.
 
 <div align="center">
   <img src="https://github.com/the-pocket/PocketFlow/raw/main/assets/mapreduce.png?raw=true" width="400"/>

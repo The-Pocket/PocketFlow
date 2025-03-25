@@ -33,6 +33,7 @@ python main.py
 By default, demo uses dummy embedding based on character frequencies. To use real OpenAI embedding:
 
 1. Edit nodes.py to replace the dummy `get_embedding` with `get_openai_embedding`:
+
 ```python
 # Change this line:
 query_embedding = get_embedding(query)
@@ -46,6 +47,7 @@ return get_openai_embedding(text)
 ```
 
 2. Make sure your OpenAI API key is set:
+
 ```bash
 export OPENAI_API_KEY="your-api-key-here"
 ```
@@ -59,13 +61,14 @@ graph TD
     subgraph OfflineFlow[Offline Document Indexing]
         EmbedDocs[EmbedDocumentsNode] --> CreateIndex[CreateIndexNode]
     end
-    
+
     subgraph OnlineFlow[Online Query Processing]
         EmbedQuery[EmbedQueryNode] --> RetrieveDoc[RetrieveDocumentNode]
     end
 ```
 
 Here's what each part does:
+
 1. **EmbedDocumentsNode**: Converts documents into vector representations
 2. **CreateIndexNode**: Creates a searchable FAISS index from embeddings
 3. **EmbedQueryNode**: Converts user query into the same vector space

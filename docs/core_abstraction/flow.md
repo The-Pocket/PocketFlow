@@ -16,11 +16,11 @@ Each Node's `post()` returns an **Action** string. By default, if `post()` doesn
 You define transitions with the syntax:
 
 1. **Basic default transition**: `node_a >> node_b`
-  This means if `node_a.post()` returns `"default"`, go to `node_b`. 
-  (Equivalent to `node_a - "default" >> node_b`)
+   This means if `node_a.post()` returns `"default"`, go to `node_b`.
+   (Equivalent to `node_a - "default" >> node_b`)
 
 2. **Named action transition**: `node_a - "action_name" >> node_b`
-  This means if `node_a.post()` returns `"action_name"`, go to `node_b`.
+   This means if `node_a.post()` returns `"action_name"`, go to `node_b`.
 
 It's possible to create loops, branching, or multi-step flows.
 
@@ -38,9 +38,9 @@ flow = Flow(start=node_a)
 flow.run(shared)
 ```
 
-- When you run the flow, it executes `node_a`.  
-- Suppose `node_a.post()` returns `"default"`.  
-- The flow then sees `"default"` Action is linked to `node_b` and runs `node_b`.  
+- When you run the flow, it executes `node_a`.
+- Suppose `node_a.post()` returns `"default"`.
+- The flow then sees `"default"` Action is linked to `node_b` and runs `node_b`.
 - `node_b.post()` returns `"default"` but we didn't define `node_b >> something_else`. So the flow ends there.
 
 ### Example: Branching & Looping
@@ -48,7 +48,7 @@ flow.run(shared)
 Here's a simple expense approval flow that demonstrates branching and looping. The `ReviewExpense` node can return three possible Actions:
 
 - `"approved"`: expense is approved, move to payment processing
-- `"needs_revision"`: expense needs changes, send back for revision 
+- `"needs_revision"`: expense needs changes, send back for revision
 - `"rejected"`: expense is denied, finish the process
 
 We can wire them like this:
@@ -83,12 +83,12 @@ flowchart TD
 
 ### Running Individual Nodes vs. Running a Flow
 
-- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action. 
+- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
 - `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.
 
 > `node.run(shared)` **does not** proceed to the successor.
 > This is mainly for debugging or testing a single node.
-> 
+>
 > Always use `flow.run(...)` in production to ensure the full pipeline runs correctly.
 {: .warning }
 
@@ -96,8 +96,8 @@ flowchart TD
 
 A **Flow** can act like a Node, which enables powerful composition patterns. This means you can:
 
-1. Use a Flow as a Node within another Flow's transitions.  
-2. Combine multiple smaller Flows into a larger Flow for reuse.  
+1. Use a Flow as a Node within another Flow's transitions.
+2. Combine multiple smaller Flows into a larger Flow for reuse.
 3. Node `params` will be a merging of **all** parents' `params`.
 
 ### Flow's Node Methods
@@ -124,6 +124,7 @@ parent_flow = Flow(start=subflow)
 ```
 
 When `parent_flow.run()` executes:
+
 1. It starts `subflow`
 2. `subflow` runs through its nodes (`node_a->node_b`)
 3. After `subflow` completes, execution continues to `node_c`

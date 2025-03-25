@@ -9,9 +9,9 @@ nav_order: 5
 
 **Async** Nodes implement `prep_async()`, `exec_async()`, `exec_fallback_async()`, and/or `post_async()`. This is useful for:
 
-1. **prep_async()**: For *fetching/reading data (files, APIs, DB)* in an I/O-friendly way.
+1. **prep_async()**: For _fetching/reading data (files, APIs, DB)_ in an I/O-friendly way.
 2. **exec_async()**: Typically used for async LLM calls.
-3. **post_async()**: For *awaiting user feedback*, *coordinating across multi-agents* or any additional async steps after `exec_async()`.
+3. **post_async()**: For _awaiting user feedback_, _coordinating across multi-agents_ or any additional async steps after `exec_async()`.
 
 **Note**: `AsyncNode` must be wrapped in `AsyncFlow`. `AsyncFlow` can also include regular (sync) nodes.
 

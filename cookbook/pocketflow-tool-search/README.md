@@ -28,15 +28,18 @@ A web search tool built with PocketFlow that performs searches using SerpAPI and
 ## Usage
 
 Run the search tool:
+
 ```bash
 python main.py
 ```
 
 You will be prompted to:
+
 1. Enter your search query
 2. Specify number of results to fetch (default: 5)
 
 The tool will then:
+
 1. Perform the search using SerpAPI
 2. Analyze results using GPT-4
 3. Present a summary with key points and follow-up queries

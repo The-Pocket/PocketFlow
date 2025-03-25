@@ -9,25 +9,25 @@ nav_order: 5
 
 Below you will find an overview table of various text embedding APIs, along with example Python code.
 
->  Embedding is more a micro optimization, compared to the Flow Design.
-> 
+> Embedding is more a micro optimization, compared to the Flow Design.
+>
 > It's recommended to start with the most convenient one and optimize later.
 {: .best-practice }
 
-
-| **API** | **Free Tier** | **Pricing Model** | **Docs** |
-| --- | --- | --- | --- |
-| **OpenAI** | ~$5 credit | ~$0.0001/1K tokens | [OpenAI Embeddings](https://platform.openai.com/docs/api-reference/embeddings) |
-| **Azure OpenAI** | $200 credit | Same as OpenAI (~$0.0001/1K tokens) | [Azure OpenAI Embeddings](https://learn.microsoft.com/azure/cognitive-services/openai/how-to/create-resource?tabs=portal) |
-| **Google Vertex AI** | $300 credit | ~$0.025 / million chars | [Vertex AI Embeddings](https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-text-embeddings) |
-| **AWS Bedrock** | No free tier, but AWS credits may apply | ~$0.00002/1K tokens (Titan V2) | [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/) |
-| **Cohere** | Limited free tier | ~$0.0001/1K tokens | [Cohere Embeddings](https://docs.cohere.com/docs/cohere-embed) |
-| **Hugging Face** | ~$0.10 free compute monthly | Pay per second of compute | [HF Inference API](https://huggingface.co/docs/api-inference) |
-| **Jina** | 1M tokens free | Pay per token after | [Jina Embeddings](https://jina.ai/embeddings/) |
+| **API**              | **Free Tier**                           | **Pricing Model**                   | **Docs**                                                                                                                  |
+| -------------------- | --------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **OpenAI**           | ~$5 credit                              | ~$0.0001/1K tokens                  | [OpenAI Embeddings](https://platform.openai.com/docs/api-reference/embeddings)                                            |
+| **Azure OpenAI**     | $200 credit                             | Same as OpenAI (~$0.0001/1K tokens) | [Azure OpenAI Embeddings](https://learn.microsoft.com/azure/cognitive-services/openai/how-to/create-resource?tabs=portal) |
+| **Google Vertex AI** | $300 credit                             | ~$0.025 / million chars             | [Vertex AI Embeddings](https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-text-embeddings)              |
+| **AWS Bedrock**      | No free tier, but AWS credits may apply | ~$0.00002/1K tokens (Titan V2)      | [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/)                                                                    |
+| **Cohere**           | Limited free tier                       | ~$0.0001/1K tokens                  | [Cohere Embeddings](https://docs.cohere.com/docs/cohere-embed)                                                            |
+| **Hugging Face**     | ~$0.10 free compute monthly             | Pay per second of compute           | [HF Inference API](https://huggingface.co/docs/api-inference)                                                             |
+| **Jina**             | 1M tokens free                          | Pay per token after                 | [Jina Embeddings](https://jina.ai/embeddings/)                                                                            |
 
 ## Example Python Code
 
 ### 1. OpenAI
+
 ```python
 from openai import OpenAI
 
@@ -36,7 +36,7 @@ response = client.embeddings.create(
     model="text-embedding-ada-002",
     input=text
 )
-    
+
 # Extract the embedding vector from the response
 embedding = response.data[0].embedding
 embedding = np.array(embedding, dtype=np.float32)
@@ -44,6 +44,7 @@ print(embedding)
 ```
 
 ### 2. Azure OpenAI
+
 ```python
 import openai
 
@@ -58,6 +59,7 @@ print(vec)
 ```
 
 ### 3. Google Vertex AI
+
 ```python
 from vertexai.preview.language_models import TextEmbeddingModel
 import vertexai
@@ -70,6 +72,7 @@ print(emb[0])
 ```
 
 ### 4. AWS Bedrock
+
 ```python
 import boto3, json
 
@@ -82,6 +85,7 @@ print(vec)
 ```
 
 ### 5. Cohere
+
 ```python
 import cohere
 
@@ -92,6 +96,7 @@ print(vec)
 ```
 
 ### 6. Hugging Face
+
 ```python
 import requests
 
@@ -104,6 +109,7 @@ print(vec)
 ```
 
 ### 7. Jina
+
 ```python
 import requests
 
@@ -114,4 +120,3 @@ res = requests.post(url, headers=headers, json=payload)
 vec = res.json()["data"][0]["embedding"]
 print(vec)
 ```
-
