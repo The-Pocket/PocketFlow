@@ -12,6 +12,8 @@ from nodes import (
     CheckLinkedInExists,
     ScrapeLinkedIn,
     AnalyzeLinkedIn,
+    SearchThirdPartySources,
+    AnalyzeThirdPartySources,
     GenerateEmail,
     StoreResults
 )
@@ -35,6 +37,8 @@ def create_v1_lead_processing_flow() -> Flow:
     check_linkedin = CheckLinkedInExists()
     scrape_linkedin = ScrapeLinkedIn()
     analyze_linkedin = AnalyzeLinkedIn()
+    search_third_party = SearchThirdPartySources()
+    analyze_third_party = AnalyzeThirdPartySources()
     generate_email = GenerateEmail()
     store_results = StoreResults()
     # Optional: Define an explicit end node if needed for clarity or specific actions
@@ -54,10 +58,14 @@ def create_v1_lead_processing_flow() -> Flow:
     # LinkedIn branch
     check_linkedin - "has_linkedin" >> scrape_linkedin
     scrape_linkedin >> analyze_linkedin
-    analyze_linkedin >> generate_email # Both LinkedIn paths converge here
+    analyze_linkedin >> search_third_party # New connection
 
     # No LinkedIn path
-    check_linkedin - "no_linkedin" >> generate_email # Skip LinkedIn steps
+    check_linkedin - "no_linkedin" >> search_third_party # New connection
+
+    # Third Party Search Path
+    search_third_party >> analyze_third_party
+    analyze_third_party >> generate_email # Connect to final steps
 
     # Final steps
     generate_email >> store_results

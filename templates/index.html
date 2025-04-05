@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lead Email Generator</title>
+    <!-- Simple styling - replace with a proper CSS framework like Bootstrap later -->
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2em auto; padding: 1em; line-height: 1.6; }
+        h1, h2 { color: #333; }
+        form label { display: block; margin-bottom: 0.5em; font-weight: bold; }
+        form input[type=text], form input[type=url] { width: 95%; padding: 0.5em; margin-bottom: 1em; border: 1px solid #ccc; }
+        form button { padding: 0.7em 1.5em; background-color: #007bff; color: white; border: none; cursor: pointer; font-size: 1em; }
+        .results { margin-top: 2em; padding: 1em; border: 1px solid #eee; background-color: #f9f9f9; }
+        .results h2 { margin-top: 0; }
+        .results pre { background-color: #eee; padding: 0.5em; border-radius: 3px; white-space: pre-wrap; word-wrap: break-word; }
+        .flash { padding: 1em; margin-bottom: 1em; border-radius: 3px; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        details { border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1em; }
+        summary { font-weight: bold; padding: 0.5em; cursor: pointer; background-color: #f1f1f1; }
+        details div { padding: 1em; border-top: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Lead Email Generator (V1)</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/process" method="post">
+        <label for="lead_name">Lead First Name:</label>
+        <input type="text" id="lead_name" name="lead_name" value="{{ lead_input.lead_name if lead_input else '' }}">
+
+        <label for="last_name">Lead Last Name (Optional):</label>
+        <input type="text" id="last_name" name="last_name" value="{{ lead_input.last_name if lead_input else '' }}">
+
+        <label for="company_name">Company Name:</label>
+        <input type="text" id="company_name" name="company_name" value="{{ lead_input.company_name if lead_input else '' }}">
+
+        <label for="company_website">Company Website URL (Optional):</label>
+        <input type="url" id="company_website" name="company_website" placeholder="https://example.com" value="{{ lead_input.company_website if lead_input else '' }}">
+
+        <label for="linkedin_url">LinkedIn Profile URL (Optional):</label>
+        <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/..." value="{{ lead_input.linkedin_url if lead_input else '' }}">
+
+        <button type="submit">Generate Email</button>
+    </form>
+
+    {% if results %}
+    <div class="results">
+        <h2>Generated Email</h2>
+        <p><strong>Subject:</strong> {{ results.email_subject }}</p>
+        <p><strong>Body:</strong></p>
+        <pre>{{ results.email_body }}</pre>
+        
+        <hr>
+        
+        <h2>Analysis Data (from Shared Store)</h2>
+        
+        <details>
+            <summary>Website Analysis Report</summary>
+            <div>
+            {% if results.website_report %}
+                <pre>{{ results.website_report | tojson(indent=2) }}</pre>
+            {% else %}
+                <p>No website analysis performed or data available.</p>
+            {% endif %}
+            </div>
+        </details>
+
+        <details>
+            <summary>LinkedIn Analysis Report</summary>
+            <div>
+            {% if results.linkedin_report %}
+                <pre>{{ results.linkedin_report | tojson(indent=2) }}</pre>
+            {% else %}
+                <p>No LinkedIn analysis performed or data available.</p>
+            {% endif %}
+            </div>
+        </details>
+
+        <details>
+            <summary>Full Shared Store (Debug)</summary>
+            <div>
+            <pre>{{ results | tojson(indent=2) }}</pre>
+            </div>
+        </details>
+
+    </div>
+    {% endif %}
+
+</body>
+</html> 

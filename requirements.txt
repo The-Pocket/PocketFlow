@@ -1,6 +1,17 @@
 # PocketFlow framework
 pocketflow
 
+# Web Framework
+Flask
+
+# API Clients & Utilities
+openai
+supabase
+firecrawl-py
+apify-client
+tavily-python
+python-dotenv
+
 # Add other dependencies below as needed for real utility implementations
 # e.g.:
 # openai
