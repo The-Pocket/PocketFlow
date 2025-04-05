@@ -1,0 +1,10 @@
+# PocketFlow framework
+pocketflow
+
+# Add other dependencies below as needed for real utility implementations
+# e.g.:
+# openai
+# supabase
+# firecrawl-py
+# apify-client
+# flask 
