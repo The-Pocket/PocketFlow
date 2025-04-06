@@ -29,10 +29,11 @@
 
         CheckLinkedIn -- "has_linkedin" --> ScrapeLinkedIn(Scrape LinkedIn - Apify)
         ScrapeLinkedIn --> AnalyzeLinkedIn(Analyze LinkedIn - AI)
-        AnalyzeLinkedIn --> SearchTavily(Search Third-Party - Tavily)
+        AnalyzeLinkedIn --> DecideQueries(Decide Tavily Queries - AI)
 
-        CheckLinkedIn -- "no_linkedin" --> SearchTavily
+        CheckLinkedIn -- "no_linkedin" --> DecideQueries
 
+        DecideQueries --> SearchTavily(Search Third-Party - Tavily)
         SearchTavily --> AnalyzeTavily(Analyze Third-Party - AI)
         AnalyzeTavily --> GenerateEmail(Generate Email - AI)
 
@@ -99,6 +100,7 @@ CREATE TABLE public.leads (
   linkedin_url TEXT UNIQUE, -- Make LinkedIn URL unique if present
   website_analysis_report JSONB, -- Store JSON analysis results
   linkedin_analysis_report JSONB, -- Store JSON analysis results
+  precision_intelligence_report JSONB, -- Store JSON analysis results from third-party search (NEW)
   generated_email_subject TEXT,
   generated_email_body TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -108,6 +110,9 @@ CREATE TABLE public.leads (
 
 -- Optional: Comment explaining the table purpose
 COMMENT ON TABLE public.leads IS 'Stores processed lead information and generated email content.';
+
+-- Add comment for the new column if desired
+-- COMMENT ON COLUMN public.leads.precision_intelligence_report IS 'Stores the structured analysis results derived from third-party sources (e.g., Tavily search).';
 
 -- Optional: Enable Row Level Security (Good Practice!)
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
@@ -174,28 +179,35 @@ Details on how each node interacts with the shared store and utilities.
     *   `post(shared, prep_res, exec_res)`: Writes the result (profile data dict or error dict) to `shared["linkedin_raw_profile"] = exec_res`.
     *   `returns`: `"default"` -> `AnalyzeLinkedIn`
 
-7.  **`SearchThirdPartySources`** (Node)
+7.  **`DecideTavilyQueries`** (Node)
     *   `type`: Regular
-    *   `prep(shared)`: Reads `company_name`, `lead_name`, `last_name`. Generates targeted search queries for Tavily based on predefined strategies (reviews, news, publications, etc.).
-    *   `exec(prep_res)`: Takes list of queries. Calls `utils.search.call_tavily_search` for a limited number of queries, collecting and deduplicating results.
+    *   `prep(shared)`: Reads `company_name`, `lead_name`, `last_name`. Returns context dict.
+    *   `exec(prep_res)`: Calls `utils.ai_analyzer.call_llm_with_json_output` with a prompt asking for a JSON list of 4 suggested Tavily search queries based on the context.
+    *   `post(shared, prep_res, exec_res)`: Stores the generated list of queries (or an empty list/error) into `shared['ai_generated_tavily_queries']`.
+    *   `returns`: `"default"` -> `SearchThirdPartySources`
+
+8.  **`SearchThirdPartySources`** (Node)
+    *   `type`: Regular
+    *   `prep(shared)`: Reads the list of queries from `shared['ai_generated_tavily_queries']`.
+    *   `exec(prep_res)`: Takes the AI-generated list of queries. Calls `utils.search.call_tavily_search` for a limited number of these queries, collecting and deduplicating results.
     *   `post(shared, prep_res, exec_res)`: Stores the list of unique search result dictionaries in `shared['third_party_search_results']`.
     *   `returns`: `"default"` -> `AnalyzeThirdPartySources`
 
-8.  **`AnalyzeThirdPartySources`** (Node)
+9.  **`AnalyzeThirdPartySources`** (Node)
     *   `type`: Regular
-    *   `prep(shared)`: Reads `shared['third_party_search_results']`. Formats results into a string for the LLM prompt.
-    *   `exec(prep_res)`: Takes formatted results. Calls `utils.ai_analyzer.call_llm_with_json_output` using the detailed "Precision Lead Intelligence Agent" prompt (requesting JSON output with `industry_context`, `customer_sentiment`, `unique_conversation_angle`).
-    *   `post(shared, prep_res, exec_res)`: Stores the structured JSON analysis result in `shared['precision_intelligence_report']`.
+    *   `prep(shared)`: Reads `third_party_search_results`, `lead_name`, `company_name`.
+    *   `exec(prep_res)`: Calls `utils.ai_analyzer.call_llm_text_output` using the detailed "Strategic Business Analyst" prompt, which synthesizes the third-party information into a comprehensive intelligence report with executive summary, company profile, strategic position analysis, and engagement opportunities.
+    *   `post(shared, prep_res, exec_res)`: Stores the resulting **text report string** in `shared['precision_intelligence_report']`.
     *   `returns`: `"default"` -> `GenerateEmail`
 
-9.  **`GenerateEmail`** (Node)
+10. **`GenerateEmail`** (Node)
     *   `type`: Regular
-    *   `prep(shared)`: Reads `lead_name`, `company_name`, `website_report`, `linkedin_report`, and `precision_intelligence_report`. Packages into a context dictionary.
-    *   `exec(prep_res)`: Calls `utils.ai_generator.generate_email_draft` with the context. The underlying prompt prioritizes using the `precision_intelligence_report` for personalization.
+    *   `prep(shared)`: Reads `lead_name`, `company_name`, `website_report`, `linkedin_report`, and `precision_intelligence_report` (now a text string).
+    *   `exec(prep_res)`: Calls `utils.ai_generator.generate_email_draft`. The prompt needs to handle the `precision_intelligence_report` as text.
     *   `post(shared, prep_res, exec_res)`: Stores `exec_res['subject']` and `exec_res['body']` into `shared`.
     *   `returns`: `"default"` -> `StoreResults`
 
-10. **`StoreResults`** (Node)
+11. **`StoreResults`** (Node)
     *   `type`: Regular
     *   `prep(shared)`: Now also includes `precision_intelligence_report` when preparing `data_to_save`.
     *   `exec(prep_res)`: Calls `utils.database.save_to_supabase`.
@@ -215,11 +227,13 @@ shared = {
 
     # Intermediate Results
     "website_raw_content": "...", 
-    "website_report": { ... },
+    "website_report": "...",     # Detailed text report (string), NOT JSON anymore
     "linkedin_raw_profile": { ... },
     "linkedin_report": { ... },
-    "third_party_search_results": [ ... ], # List of Tavily results
-    "precision_intelligence_report": { ... }, # Structured analysis from Tavily results
+    "ai_generated_tavily_queries": ["query1", ...], # List of strings from AI
+    "query_generation_error": "..." or None,     # Potential error message
+    "third_party_search_results": [ ... ], 
+    "precision_intelligence_report": "...", # Strategic analysis report as formatted text (not JSON)
 
     # Final Output
     "email_subject": "...",

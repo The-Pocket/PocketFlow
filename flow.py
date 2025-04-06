@@ -12,6 +12,7 @@ from nodes import (
     CheckLinkedInExists,
     ScrapeLinkedIn,
     AnalyzeLinkedIn,
+    DecideTavilyQueries,
     SearchThirdPartySources,
     AnalyzeThirdPartySources,
     GenerateEmail,
@@ -37,6 +38,7 @@ def create_v1_lead_processing_flow() -> Flow:
     check_linkedin = CheckLinkedInExists()
     scrape_linkedin = ScrapeLinkedIn()
     analyze_linkedin = AnalyzeLinkedIn()
+    decide_tavily_queries = DecideTavilyQueries()
     search_third_party = SearchThirdPartySources()
     analyze_third_party = AnalyzeThirdPartySources()
     generate_email = GenerateEmail()
@@ -58,12 +60,13 @@ def create_v1_lead_processing_flow() -> Flow:
     # LinkedIn branch
     check_linkedin - "has_linkedin" >> scrape_linkedin
     scrape_linkedin >> analyze_linkedin
-    analyze_linkedin >> search_third_party # New connection
+    analyze_linkedin >> decide_tavily_queries
 
     # No LinkedIn path
-    check_linkedin - "no_linkedin" >> search_third_party # New connection
+    check_linkedin - "no_linkedin" >> decide_tavily_queries
 
     # Third Party Search Path
+    decide_tavily_queries >> search_third_party
     search_third_party >> analyze_third_party
     analyze_third_party >> generate_email # Connect to final steps
 

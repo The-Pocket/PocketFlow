@@ -56,39 +56,73 @@ def generate_email_draft(context: dict) -> dict:
     
     # Create concise summaries of reports for the prompt
     website_summary = "No relevant website data provided."
-    if context.get('website_report') and isinstance(context['website_report'], dict) and not context['website_report'].get('error'):
-        ws_report = context['website_report']
-        products = ", ".join(ws_report.get('products_services', [])[:2]) # Limit products
-        value_prop = ws_report.get('value_proposition', '')
-        website_summary = f"Company Info: Sells [{products}], Value Prop: [{value_prop}]"
+    if context.get('website_report') and isinstance(context['website_report'], str) and not context['website_report'].startswith("Error:"):
+        website_summary = f"Website Analysis: {context['website_report'][:300]}..." # Limit length
 
+    # Handle the new LinkedIn analysis format with three sections
     linkedin_summary = "No relevant LinkedIn data provided."
-    if context.get('linkedin_report') and isinstance(context['linkedin_report'], dict) and not context['linkedin_report'].get('error'):
+    unique_connector = None
+    
+    if context.get('linkedin_report') and isinstance(context['linkedin_report'], str) and not context['linkedin_report'].startswith("Error:"):
         li_report = context['linkedin_report']
-        headline = li_report.get('headline', '')
-        skills = ", ".join(li_report.get('key_skills', [])[:3]) # Limit skills
-        focus = li_report.get('recent_focus', '')
-        linkedin_summary = f"Role: [{headline}], Skills: [{skills}], Recent Focus: [{focus}]"
-
-    # Precision Intelligence Summary (NEW)
-    precision_angle = "No specific third-party angle found."
-    precision_context = "No specific third-party context found."
-    if context.get('precision_intelligence_report') and isinstance(context['precision_intelligence_report'], dict) and not context['precision_intelligence_report'].get('error'):
-        pi_report = context['precision_intelligence_report']
-        # Extract the unique angle and potentially a sentiment/context point
-        unique_angle_data = pi_report.get('unique_conversation_angle', {})
-        if unique_angle_data and unique_angle_data.get('point'):
-            precision_angle = unique_angle_data.get('point')
         
-        # Try to get a sentiment point as context
-        sentiment_data = pi_report.get('customer_sentiment', [])
-        if sentiment_data and isinstance(sentiment_data, list) and len(sentiment_data) > 0 and sentiment_data[0].get('point'):
-            precision_context = f"Customer sentiment insight: '{sentiment_data[0].get('point')}'"
-        # Fallback to industry context if no sentiment
-        elif not sentiment_data or not sentiment_data[0].get('point'):
-             industry_data = pi_report.get('industry_context', [])
-             if industry_data and isinstance(industry_data, list) and len(industry_data) > 0 and industry_data[0].get('point'):
-                 precision_context = f"Industry context: '{industry_data[0].get('point')}'"
+        # Try to extract the three sections from the LinkedIn report
+        professional_snapshot = ""
+        outreach_angles = ""
+        unique_connector = ""
+        
+        # Extract Professional Snapshot section
+        prof_start = li_report.find("PROFESSIONAL SNAPSHOT")
+        if prof_start != -1:
+            prof_end = li_report.find("OUTREACH ANGLES", prof_start)
+            if prof_end != -1:
+                professional_snapshot = li_report[prof_start:prof_end].strip()
+        
+        # Extract Outreach Angles section
+        angles_start = li_report.find("OUTREACH ANGLES")
+        if angles_start != -1:
+            angles_end = li_report.find("UNIQUE CONNECTOR", angles_start)
+            if angles_end != -1:
+                outreach_angles = li_report[angles_start:angles_end].strip()
+        
+        # Extract Unique Connector section
+        connector_start = li_report.find("UNIQUE CONNECTOR")
+        if connector_start != -1:
+            unique_connector = li_report[connector_start:].strip()
+        
+        # Combine sections into a summary, prioritizing the unique connector
+        linkedin_sections = []
+        if professional_snapshot:
+            linkedin_sections.append(professional_snapshot)
+        if outreach_angles:
+            linkedin_sections.append(outreach_angles)
+            
+        linkedin_summary = "\n".join(linkedin_sections)
+
+    # Precision Intelligence Summary (UPDATED - Now expects a string report)
+    precision_report_excerpt = "No specific third-party intelligence report available."
+    raw_pi_report = context.get('precision_intelligence_report')
+    if isinstance(raw_pi_report, str) and not raw_pi_report.startswith("Error:"):
+        # Try to extract the Executive Summary or first few lines as context
+        try:
+            summary_start = raw_pi_report.find("**Executive Summary:**")
+            if summary_start != -1:
+                 # Find the next section or end of report
+                 summary_end = raw_pi_report.find("\n\n**", summary_start + 20) 
+                 if summary_end == -1:
+                      summary_end = len(raw_pi_report)
+                 excerpt = raw_pi_report[summary_start + 20 : summary_end].strip()
+                 if excerpt:
+                     precision_report_excerpt = f"Exec Summary from Report: {excerpt[:300]}..." # Limit length
+                 else: # Fallback if summary empty
+                     precision_report_excerpt = f"Report found, first lines: {raw_pi_report[:300]}..."
+            else: # Fallback if no summary header
+                  precision_report_excerpt = f"Report found, first lines: {raw_pi_report[:300]}..."
+        except Exception:
+            # Fallback if parsing fails
+             precision_report_excerpt = f"Report found, first lines: {raw_pi_report[:300]}..."
+    elif isinstance(raw_pi_report, str): # Handle case where it's an error string
+         precision_report_excerpt = "Third-party intelligence generation failed."
 
     # Construct the prompt
     prompt = f"""
@@ -97,20 +131,19 @@ def generate_email_draft(context: dict) -> dict:
     **Available Information:**
     * Lead Name: {lead_name}
     * Company Name: {company_name}
-    * Unique Third-Party Insight (Angle): {precision_angle}
-    * Supporting Third-Party Context: {precision_context}
-    * LinkedIn Summary (Optional): {linkedin_summary}
-    * Website Summary (Optional): {website_summary}
+    * Strategic Report Excerpt: {precision_report_excerpt}
+    * LinkedIn Summary: {linkedin_summary}
+    * LinkedIn Unique Connector: {unique_connector if unique_connector else "No unique connector found."}
+    * Website Summary: {website_summary}
 
     **Task:**
     1. Write a short, compelling subject line (under 10 words) that ideally hints at the unique insight without revealing everything.
     2. Write a brief email body (2-4 sentences maximum).
-    3. **Critically, use the 'Unique Third-Party Insight (Angle)' as the primary hook** for your opening sentence or a key point. Reference it specifically but naturally (e.g., "Saw the discussion on [Forum] about..." or "Noticed the insight from the [Source] report regarding...").
+    3. **Critically, personalize the opening line or a key point** using ONE specific detail from the **LinkedIn Unique Connector** if available, or the Strategic Report Excerpt, or Website summary. Reference it naturally.
     4. Briefly connect this unique angle to a potential benefit for the lead or their company, relating to your (unspecified) product/service.
-    5. If the unique angle is weak ("No specific third-party angle found."), fall back to using a detail from the LinkedIn or Website summary for personalization.
-    6. Maintain a professional and friendly tone.
-    7. End with a clear, low-friction call to action.
-    8. **Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_name}, saw the point about [Specific Detail]..."}}
+    5. Maintain a professional and friendly tone.
+    6. End with a clear, low-friction call to action.
+    7. **Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_name}, saw the point about [Specific Detail]..."}}
     
     **JSON Output:**
     """
