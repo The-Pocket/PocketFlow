@@ -11,6 +11,8 @@ firecrawl-py
 apify-client
 tavily-python
 python-dotenv
+google-generativeai
+groq
 
 # Add other dependencies below as needed for real utility implementations
 # e.g.:

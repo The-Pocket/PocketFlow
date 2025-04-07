@@ -6,21 +6,55 @@
     <title>Lead Email Generator</title>
     <!-- Simple styling - replace with a proper CSS framework like Bootstrap later -->
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 2em auto; padding: 1em; line-height: 1.6; }
-        h1, h2 { color: #333; }
+        body { font-family: sans-serif; max-width: 900px; margin: 2em auto; padding: 1em; line-height: 1.6; }
+        h1, h2, h3 { color: #333; }
         form label { display: block; margin-bottom: 0.5em; font-weight: bold; }
         form input[type=text], form input[type=url] { width: 95%; padding: 0.5em; margin-bottom: 1em; border: 1px solid #ccc; }
         form button { padding: 0.7em 1.5em; background-color: #007bff; color: white; border: none; cursor: pointer; font-size: 1em; }
-        .results { margin-top: 2em; padding: 1em; border: 1px solid #eee; background-color: #f9f9f9; }
-        .results h2 { margin-top: 0; }
-        .results pre { background-color: #eee; padding: 0.5em; border-radius: 3px; white-space: pre-wrap; word-wrap: break-word; }
+        .results-container { margin-top: 2em; padding: 1em; border: 1px solid #eee; background-color: #f9f9f9; border-radius: 5px; }
+        .results-section { margin-bottom: 1.5em; padding-bottom: 1.5em; border-bottom: 1px dashed #ddd; }
+        .results-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .results h2 { margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 0.3em; }
+        .results h3 { margin-top: 1em; margin-bottom: 0.5em; color: #555; }
+        /* Style for the report content divs */
+        .results .report-content { 
+            background-color: #eee; 
+            padding: 1em; 
+            border-radius: 3px; 
+            white-space: pre-wrap;    /* Preserve whitespace, but wrap */
+            overflow-wrap: break-word; /* Force break long words/strings */
+            max-width: 100%;          /* Ensure it doesn't exceed parent width */
+            max-height: 400px;        /* Limit height */
+            overflow-y: auto;         /* Add vertical scrollbar if needed */
+            font-family: monospace;   /* Keep monospace font if desired */
+            border: 1px solid #ddd;
+            box-sizing: border-box;   /* Include padding/border in width calculation */
+        }
+        /* Keep separate style for raw debug output if uncommented */
+        .results pre { 
+             background-color: #333; 
+             color: #fff;
+             padding: 1em; 
+             border-radius: 3px; 
+             white-space: pre-wrap;
+             overflow-wrap: break-word;
+             max-width: 100%; 
+             max-height: 400px;
+             overflow: auto; /* Both x and y scroll if needed */
+             font-family: monospace;
+             border: 1px solid #555;
+             box-sizing: border-box; 
+        }
+        .results strong { color: #0056b3; }
+        .error-message { color: #dc3545; font-style: italic; }
         .flash { padding: 1em; margin-bottom: 1em; border-radius: 3px; }
         .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        details { border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1em; }
-        summary { font-weight: bold; padding: 0.5em; cursor: pointer; background-color: #f1f1f1; }
-        details div { padding: 1em; border-top: 1px solid #ccc; }
+        details { border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1em; background-color: #fff; }
+        summary { font-weight: bold; padding: 0.8em; cursor: pointer; background-color: #f1f1f1; border-bottom: 1px solid #ccc; }
+        details[open] summary { border-bottom: 1px solid #ccc; background-color: #e9e9e9; }
+        details div { padding: 1em; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -51,48 +85,102 @@
         <label for="linkedin_url">LinkedIn Profile URL (Optional):</label>
         <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/..." value="{{ lead_input.linkedin_url if lead_input else '' }}">
 
+        <label for="product_service">What are you selling? (Your product/service):</label>
+        <input type="text" id="product_service" name="product_service" placeholder="e.g., AI-powered CRM software" value="{{ lead_input.product_service if lead_input else '' }}">
+
         <button type="submit">Generate Email</button>
     </form>
 
     {% if results %}
-    <div class="results">
-        <h2>Generated Email</h2>
-        <p><strong>Subject:</strong> {{ results.email_subject }}</p>
-        <p><strong>Body:</strong></p>
-        <pre>{{ results.email_body }}</pre>
-        
-        <hr>
-        
-        <h2>Analysis Data (from Shared Store)</h2>
-        
-        <details>
-            <summary>Website Analysis Report</summary>
-            <div>
-            {% if results.website_report %}
-                <pre>{{ results.website_report | tojson(indent=2) }}</pre>
-            {% else %}
-                <p>No website analysis performed or data available.</p>
-            {% endif %}
-            </div>
-        </details>
+    <div class="results-container">
+        <h2>Results</h2>
 
-        <details>
-            <summary>LinkedIn Analysis Report</summary>
-            <div>
-            {% if results.linkedin_report %}
-                <pre>{{ results.linkedin_report | tojson(indent=2) }}</pre>
-            {% else %}
-                <p>No LinkedIn analysis performed or data available.</p>
-            {% endif %}
-            </div>
-        </details>
+        <!-- Input Summary -->
+        <div class="results-section">
+            <h3>Input Summary</h3>
+            <p><strong>Lead:</strong> {{ results.get('lead_name', 'N/A') }} {{ results.get('last_name', '') }}</p>
+            <p><strong>Company:</strong> {{ results.get('company_name', 'N/A') }}</p>
+            <p><strong>Website:</strong> {{ results.get('company_website', 'N/A') }}</p>
+            <p><strong>LinkedIn:</strong> {{ results.get('linkedin_url', 'N/A') }}</p>
+            <p><strong>Your Product/Service:</strong> {{ results.get('product_service', 'N/A') }}</p>
+        </div>
 
-        <details>
-            <summary>Full Shared Store (Debug)</summary>
-            <div>
-            <pre>{{ results | tojson(indent=2) }}</pre>
-            </div>
-        </details>
+        <!-- Generated Email -->
+        <div class="results-section">
+            <h3>Generated Email</h3>
+            {% if results.get('email_subject') and 'Error:' not in results.get('email_subject') %}
+                <p><strong>Subject:</strong> {{ results.get('email_subject') }}</p>
+                <h3>Body:</h3>
+                <div class="report-content">{{ results.get('email_body', 'Could not generate email body.') }}</div>
+            {% else %}
+                <p class="error-message">Email generation failed or produced an error.</p>
+                <p><i>{{ results.get('email_subject', 'No subject generated.') }}</i></p>
+                <p><i>{{ results.get('email_body', 'No body generated.') }}</i></p>
+            {% endif %}
+        </div>
+        
+        <!-- Analysis Reports -->
+        <div class="results-section">
+            <h3>Analysis Reports</h3>
+
+            <!-- Website Analysis -->
+            <details>
+                <summary>Website Analysis Report</summary>
+                <div>
+                    {% set report = results.get('website_report') %}
+                    {% if report and 'Error' not in report and 'failed' not in report|lower %}
+                        <div class="report-content">{{ report }}</div>
+                    {% elif report %}
+                        <p class="error-message">{{ report }}</p>
+                    {% else %}
+                        <p><i>No website analysis was performed or generated.</i></p>
+                    {% endif %}
+                </div>
+            </details>
+
+            <!-- LinkedIn Analysis -->
+            <details>
+                <summary>LinkedIn Analysis Report</summary>
+                <div>
+                    {% set report = results.get('linkedin_report') %}
+                    {% if report and 'Error' not in report and 'failed' not in report|lower %}
+                        <div class="report-content">{{ report }}</div>
+                    {% elif report %}
+                        <p class="error-message">{{ report }}</p>
+                    {% else %}
+                        <p><i>No LinkedIn analysis was performed or generated.</i></p>
+                    {% endif %}
+                </div>
+            </details>
+
+            <!-- Third-Party Intelligence -->
+            <details>
+                <summary>Third-Party Precision Intelligence Report</summary>
+                <div>
+                    {% set report = results.get('precision_intelligence_report') %}
+                    {% if report and 'Error' not in report and 'failed' not in report|lower %}
+                        <div class="report-content">{{ report }}</div>
+                    {% elif report %}
+                        <p class="error-message">{{ report }}</p>
+                    {% else %}
+                        <p><i>No third-party intelligence analysis was performed or generated.</i></p>
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+
+        <!-- Optional: Raw Shared Store for Debugging -->
+        <!-- 
+        <div class="results-section">
+            <h3>Raw Data (Debug)</h3>
+            <details>
+                <summary>Show Raw Shared Store</summary>
+                <div>
+                    <pre>{{ results | tojson(indent=2) }}</pre>
+                </div>
+            </details>
+        </div>
+        -->
 
     </div>
     {% endif %}

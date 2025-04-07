@@ -3,6 +3,9 @@
 import json
 import os
 import logging
+import hashlib
+import pickle
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI, RateLimitError, APIError, OpenAIError
 
@@ -28,14 +31,36 @@ else:
 # Define the *default* model to use if none is specified
 DEFAULT_LLM_MODEL = "gpt-4o-mini" # You can change this default
 
-def call_llm_with_json_output(prompt: str, purpose: str, model_name: str | None = None) -> dict:
-    """Calls the OpenAI API expecting a JSON response."""
+# Create the cache directories
+LLM_CACHE_DIR = Path("cache/llm_responses")
+LLM_CACHE_DIR.mkdir(exist_ok=True, parents=True)
+JSON_CACHE_DIR = LLM_CACHE_DIR / "json"
+JSON_CACHE_DIR.mkdir(exist_ok=True)
+TEXT_CACHE_DIR = LLM_CACHE_DIR / "text"
+TEXT_CACHE_DIR.mkdir(exist_ok=True)
+
+def call_llm_with_json_output(prompt: str, purpose: str, model_name: str | None = None, dev_local_mode: bool = False) -> dict:
+    """Calls the OpenAI API expecting a JSON response. Uses caching in dev-local mode."""
     if not client:
         logging.error("OpenAI client not initialized. Cannot call LLM.")
         return {"error": "OpenAI client not initialized"}
     
     # Use provided model_name or fall back to the default
     target_model = model_name if model_name else DEFAULT_LLM_MODEL
+    
+    # Create a cache key based on the prompt and model
+    prompt_hash = hashlib.md5(prompt.encode()).hexdigest()
+    cache_key = f"{target_model}_{purpose}_{prompt_hash}"
+    cache_file = JSON_CACHE_DIR / f"{cache_key}.json"
+    
+    # Check if we have a cached response and we're in dev-local mode
+    if dev_local_mode and cache_file.exists():
+        try:
+            logging.info(f"Loading cached JSON response for {purpose} (dev-local mode)")
+            with open(cache_file, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            logging.warning(f"Failed to load JSON cache: {e}")
     
     logging.info(f"--- Calling OpenAI API ({purpose}) --- Model: {target_model} (JSON Output)")
     # logging.debug(f"Full Prompt: {prompt}") # Optional: log full prompt if needed
@@ -58,6 +83,16 @@ def call_llm_with_json_output(prompt: str, purpose: str, model_name: str | None 
         # Attempt to parse the JSON response from the LLM
         json_response = json.loads(raw_response_content)
         logging.info(f"Successfully parsed JSON response for {purpose}.")
+        
+        # Cache the response if in dev-local mode
+        if dev_local_mode:
+            try:
+                logging.info(f"Caching JSON response for {purpose}")
+                with open(cache_file, "w") as f:
+                    json.dump(json_response, f)
+            except Exception as e:
+                logging.warning(f"Failed to cache JSON response: {e}")
+                
         return json_response
         
     except json.JSONDecodeError as e:
@@ -77,14 +112,28 @@ def call_llm_with_json_output(prompt: str, purpose: str, model_name: str | None 
         return {"error": f"Unexpected error during LLM call: {e}"}
 
 # NEW function for text output
-def call_llm_text_output(prompt: str, purpose: str, model_name: str | None = None) -> str | None:
-    """Calls the OpenAI API expecting a standard text response."""
+def call_llm_text_output(prompt: str, purpose: str, model_name: str | None = None, dev_local_mode: bool = False) -> str | None:
+    """Calls the OpenAI API expecting a standard text response. Uses caching in dev-local mode."""
     if not client:
         logging.error(f"OpenAI client not initialized. Cannot call LLM for {purpose}.")
         return None # Indicate failure
     
     # Use provided model_name or fall back to the default
     target_model = model_name if model_name else DEFAULT_LLM_MODEL
+
+    # Create a cache key based on the prompt and model
+    prompt_hash = hashlib.md5(prompt.encode()).hexdigest()
+    cache_key = f"{target_model}_{purpose}_{prompt_hash}"
+    cache_file = TEXT_CACHE_DIR / f"{cache_key}.txt"
+    
+    # Check if we have a cached response and we're in dev-local mode
+    if dev_local_mode and cache_file.exists():
+        try:
+            logging.info(f"Loading cached text response for {purpose} (dev-local mode)")
+            with open(cache_file, "r") as f:
+                return f.read()
+        except Exception as e:
+            logging.warning(f"Failed to load text cache: {e}")
 
     logging.info(f"--- Calling OpenAI API ({purpose}) --- Model: {target_model} (Text Output)")
     # logging.debug(f"Full Prompt: {prompt}") # Optional
@@ -102,9 +151,19 @@ def call_llm_text_output(prompt: str, purpose: str, model_name: str | None = Non
             max_tokens=2000 # Allow for longer text reports
         )
         
-        text_response = response.choices[0].message.content
+        text_response = response.choices[0].message.content.strip()
         logging.info(f"OpenAI API ({purpose}) text response received (Length: {len(text_response)}).")
-        return text_response.strip() # Return the text content
+        
+        # Cache the response if in dev-local mode
+        if dev_local_mode:
+            try:
+                logging.info(f"Caching text response for {purpose}")
+                with open(cache_file, "w") as f:
+                    f.write(text_response)
+            except Exception as e:
+                logging.warning(f"Failed to cache text response: {e}")
+                
+        return text_response
         
     # Keep similar error handling as the JSON version
     except RateLimitError as e:
