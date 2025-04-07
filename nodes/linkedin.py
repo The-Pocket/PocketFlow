@@ -10,11 +10,13 @@ class CheckLinkedInExists(Node):
     def prep(self, shared):
         """Prepare search query for LinkedIn profile."""
         company_name = shared.get('company_name', '')
-        lead_name = shared.get('lead_name', '')
+        lead_first_name = shared.get('lead_first_name', '')
+        lead_last_name = shared.get('lead_last_name', '')
         
         # Create search query based on available info
-        if lead_name and company_name:
-            search_query = f"{lead_name} {company_name} linkedin"
+        lead_full_name_for_search = f"{lead_first_name} {lead_last_name}".strip()
+        if lead_full_name_for_search and company_name:
+            search_query = f"{lead_full_name_for_search} {company_name} linkedin"
         elif company_name:
             search_query = f"{company_name} linkedin"
         else:
@@ -97,7 +99,8 @@ class AnalyzeLinkedIn(Node):
         """Get the LinkedIn content and related info."""
         linkedin_content = shared.get('linkedin_content', '')
         company_name = shared.get('company_name', '')
-        lead_name = shared.get('lead_name', '')
+        lead_first_name = shared.get('lead_first_name', '')
+        lead_last_name = shared.get('lead_last_name', '')
         linkedin_url = shared.get('linkedin_url', '')
         
         # If no content, nothing to analyze
@@ -109,7 +112,8 @@ class AnalyzeLinkedIn(Node):
         return {
             'content': linkedin_content,
             'company_name': company_name,
-            'lead_name': lead_name,
+            'lead_first_name': lead_first_name,
+            'lead_last_name': lead_last_name,
             'linkedin_url': linkedin_url
         }
         
@@ -120,7 +124,8 @@ class AnalyzeLinkedIn(Node):
             
         linkedin_content = prep_res['content']
         company_name = prep_res['company_name']
-        lead_name = prep_res['lead_name']
+        lead_first_name = prep_res['lead_first_name']
+        lead_last_name = prep_res['lead_last_name']
         linkedin_url = prep_res['linkedin_url']
         
         # Limit content length if too large for LLM
@@ -131,7 +136,8 @@ class AnalyzeLinkedIn(Node):
             
         # Call the specific generator function
         analysis_report = generate_linkedin_analysis(
-            lead_name=lead_name,
+            lead_first_name=lead_first_name,
+            lead_last_name=lead_last_name,
             company_name=company_name,
             linkedin_url=linkedin_url,
             linkedin_content=linkedin_content

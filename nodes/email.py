@@ -10,7 +10,8 @@ class GenerateEmail(Node):
         """Prepare context for email generation."""
         # Gather all context for email creation
         context = {
-            "lead_name": shared.get('lead_name', ''),
+            "lead_first_name": shared.get('lead_first_name', ''),
+            "lead_last_name": shared.get('lead_last_name', ''),
             "company_name": shared.get('company_name', ''),
             "product_service": shared.get('product_service', ''),
             "company_website": shared.get('company_website', ''),
@@ -22,8 +23,8 @@ class GenerateEmail(Node):
         }
         
         # Check if we have enough data to generate a meaningful email
-        if not context["lead_name"] or not context["company_name"]:
-            logging.warning("Missing essential lead data for email generation")
+        if not context["lead_first_name"] and not context["lead_last_name"]:
+            logging.warning("Missing lead name for email generation")
             return None
             
         # Check if we have at least one report
@@ -47,7 +48,8 @@ class GenerateEmail(Node):
             
         # Call the specific generator function, passing context directly
         email_result = generate_email(
-            lead_name=context.get("lead_name", ""),
+            lead_first_name=context.get("lead_first_name", ""),
+            lead_last_name=context.get("lead_last_name", ""),
             company_name=context.get("company_name", ""),
             product_service=context.get("product_service", ""),
             company_website=context.get("company_website", ""),

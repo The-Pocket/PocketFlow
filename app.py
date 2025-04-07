@@ -41,10 +41,11 @@ def process_lead_with_flow(lead_info: dict) -> dict:
     Runs the V1 PocketFlow for a single lead and returns the results.
     (Similar to run_single_lead from main.py, adapted for web app context)
     """
-    logging.info(f"--- Starting web request processing for lead: {lead_info.get('lead_name', 'N/A')} ---")
+    lead_full_name = f"{lead_info.get('lead_first_name', '')} {lead_info.get('lead_last_name', '')}".strip() or "N/A"
+    logging.info(f"--- Starting web request processing for lead: {lead_full_name} ---")
     
     # Create a unique cache key based on the lead information
-    cache_key = f"{lead_info.get('lead_name', '')}-{lead_info.get('company_name', '')}-{lead_info.get('company_website', '')}-{lead_info.get('linkedin_url', '')}"
+    cache_key = f"{lead_info.get('lead_first_name', '')}-{lead_info.get('company_name', '')}-{lead_info.get('company_website', '')}-{lead_info.get('linkedin_url', '')}"
     cache_key = cache_key.replace(" ", "_").replace("/", "_").replace(":", "_").lower()
     cache_file = CACHE_DIR / f"{cache_key}.pkl"
     
@@ -72,7 +73,7 @@ def process_lead_with_flow(lead_info: dict) -> dict:
         # Run the flow
         v1_flow.run(shared=shared_store)
         
-        logging.info(f"--- Finished web request processing for lead: {lead_info.get('lead_name', 'N/A')} ---")
+        logging.info(f"--- Finished web request processing for lead: {lead_full_name} ---")
         
         # Cache the results if in dev-local mode
         if DEV_LOCAL_MODE:
@@ -88,7 +89,8 @@ def process_lead_with_flow(lead_info: dict) -> dict:
         return shared_store
 
     except Exception as e:
-        logging.error(f"Error during PocketFlow execution for lead {lead_info.get('lead_name', 'N/A')}: {e}", exc_info=True)
+        lead_full_name_for_error = f"{lead_info.get('lead_first_name', '')} {lead_info.get('lead_last_name', '')}".strip() or "N/A"
+        logging.error(f"Error during PocketFlow execution for lead {lead_full_name_for_error}: {e}", exc_info=True)
         # Return an error structure that the template can recognize
         return {"error": f"An internal error occurred during processing: {e}"}
 
@@ -104,8 +106,8 @@ def process():
     """Processes the form submission, runs the flow, and displays results."""
     # Get data from form
     lead_input = {
-        "lead_name": request.form.get('lead_name', '').strip(),
-        "last_name": request.form.get('last_name', '').strip(),
+        "lead_first_name": request.form.get('lead_first_name', '').strip(),
+        "lead_last_name": request.form.get('lead_last_name', '').strip(),
         "company_name": request.form.get('company_name', '').strip(),
         "company_website": request.form.get('company_website', '').strip(),
         "linkedin_url": request.form.get('linkedin_url', '').strip(),
@@ -113,7 +115,7 @@ def process():
     }
     
     # Basic validation (can be more sophisticated)
-    if not lead_input['lead_name'] and not lead_input['company_name']:
+    if not lead_input['lead_first_name'] and not lead_input['company_name']:
         flash("Please provide at least a Lead Name or Company Name.", "warning")
         return render_template('index.html', results=None, lead_input=lead_input)
     if not lead_input['company_website'] and not lead_input['linkedin_url']:

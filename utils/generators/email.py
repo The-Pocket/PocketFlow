@@ -15,7 +15,8 @@ EMAIL_CACHE_DIR = Path("cache/email_gen")
 EMAIL_CACHE_DIR.mkdir(exist_ok=True, parents=True)
 
 def generate_email(
-    lead_name: str,
+    lead_first_name: str,
+    lead_last_name: str,
     company_name: str,
     product_service: str,
     company_website: str = "",
@@ -30,7 +31,8 @@ def generate_email(
     Generates a personalized email draft using an LLM.
 
     Args:
-        lead_name: Name of the lead.
+        lead_first_name: First name of the lead.
+        lead_last_name: Last name of the lead.
         company_name: Name of the company.
         product_service: What you are selling.
         company_website: Optional URL of the company website.
@@ -47,7 +49,9 @@ def generate_email(
     logging.info("Initiating email generation, incorporating precision intelligence.")
 
     # --- Prepare context for the prompt --- 
-    lead_name = lead_name or 'there' # Fallback name
+    lead_first_name_for_salutation = lead_first_name or 'there' # Fallback name for salutation
+    lead_full_name = f"{lead_first_name} {lead_last_name}".strip()
+    lead_full_name_for_context = lead_full_name if lead_full_name else "the lead"
     company_name = company_name or 'your company'
     product_service = product_service or 'our product/service'
 
@@ -73,7 +77,7 @@ def generate_email(
     You are an AI assistant writing a highly personalized cold outreach email. Your goal is a **concise, relevant, and engaging** email that demonstrates unique insight.
 
     **Available Information:**
-    * Lead Name: {lead_name}
+    * Lead Full Name: {lead_full_name_for_context}
     * Company Name: {company_name}
     * Your Product/Service: {product_service}
     * Strategic Report Excerpt: {precision_report_excerpt}
@@ -88,18 +92,18 @@ def generate_email(
     4. Briefly connect this unique angle to a potential benefit for the lead or their company, relating to your product/service: {product_service}.
     5. Maintain a professional and friendly tone.
     6. End with a clear, low-friction call to action.
-    7. **Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_name}, saw the point about [Specific Detail]..."}}
+    7. **Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_first_name_for_salutation}, saw the point about [Specific Detail]..."}}
     
     **JSON Output:**
     """
-
+    
     # --- Cache Handling --- 
     cache_file = None
     if dev_local_mode:
         # Include model in cache key if specified
         model_key_part = f"_model_{model}" if model else "_model_default"
         prompt_hash = hashlib.md5((prompt + model_key_part).encode()).hexdigest()
-        lead_company_safe = f"{lead_name}-{company_name}".replace(" ", "_").replace("/", "_").replace(":", "_").lower()
+        lead_company_safe = f"{lead_full_name}-{company_name}".replace(" ", "_").replace("/", "_").replace(":", "_").lower()
         cache_key = f"{lead_company_safe}_{prompt_hash[:8]}"
         cache_file = EMAIL_CACHE_DIR / f"{cache_key}.json"
 
@@ -112,7 +116,7 @@ def generate_email(
                 logging.warning(f"Failed to load email cache {cache_file}: {e}")
 
     # --- Call LLM --- 
-    logging.info(f"Calling LLM for email generation. Lead: {lead_name}")
+    logging.info(f"Calling LLM for email generation. Lead: {lead_full_name_for_context}")
     email_data = call_llm(
         prompt=prompt,
         model=model,
@@ -124,14 +128,14 @@ def generate_email(
     # --- Process LLM Response --- 
     fallback_email = {
         "subject": f"Following up regarding {company_name}",
-        "body": f"Hi {lead_name},\n\nJust following up regarding {company_name}.\n\nBest,\n[Your Name]"
+        "body": f"Hi {lead_first_name_for_salutation},\n\nJust following up regarding {company_name}.\n\nBest,\n[Your Name]"
     }
 
     if isinstance(email_data, dict) and "subject" in email_data and "body" in email_data:
         # Success! Format slightly.
         email_data["subject"] = email_data["subject"].strip()
         email_data["body"] = email_data["body"].strip()
-        logging.info(f"Successfully generated email draft for {lead_name}.")
+        logging.info(f"Successfully generated email draft for {lead_full_name_for_context}.")
         
         # --- Cache Result --- 
         if dev_local_mode and cache_file:
@@ -212,7 +216,8 @@ if __name__ == '__main__':
     
     # Simulate context data
     test_context = {
-        "lead_name": "Chris A.",
+        "lead_first_name": "Chris A.",
+        "lead_last_name": "Test",
         "company_name": "TestCo",
         "product_service": "Our Amazing AI Tool",
         "website_report": "TestCo focuses on innovative web solutions. They mention scalability challenges on their blog.",

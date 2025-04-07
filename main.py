@@ -10,7 +10,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def run_single_lead(lead_info: dict):
     """Runs the V1 flow for a single lead's data."""
-    logging.info(f"--- Starting processing for lead: {lead_info.get('lead_name', 'N/A')} ---")
+    lead_full_name = f"{lead_info.get('lead_first_name', '')} {lead_info.get('lead_last_name', '')}".strip() or "N/A"
+    logging.info(f"--- Starting processing for lead: {lead_full_name} ---")
     
     # Create a fresh shared store for this run, pre-populated with lead info
     shared_store = lead_info.copy() # Start with lead info
@@ -22,7 +23,7 @@ def run_single_lead(lead_info: dict):
     # The first node (LoadLeadData) will now mostly just initialize placeholders
     v1_flow.run(shared=shared_store)
     
-    logging.info(f"--- Finished processing for lead: {lead_info.get('lead_name', 'N/A')} ---")
+    logging.info(f"--- Finished processing for lead: {lead_full_name} ---")
     
     # Print the final state of the shared store for inspection
     print("\nFinal Shared Store State:")
@@ -33,8 +34,8 @@ def run_single_lead(lead_info: dict):
 if __name__ == "__main__":
     # --- Test Case 1: Lead with Website and LinkedIn ---
     lead1 = {
-        "lead_name": "Alice",
-        "last_name": "Smith",
+        "lead_first_name": "Alice",
+        "lead_last_name": "Smith",
         "company_name": "Innovate Solutions",
         "company_website": "https://innovate-solutions.example",
         "linkedin_url": "https://linkedin.com/in/alice-smith-example"
@@ -43,8 +44,8 @@ if __name__ == "__main__":
 
     # --- Test Case 2: Lead with only Website ---
     lead2 = {
-        "lead_name": "Bob",
-        "last_name": "Jones",
+        "lead_first_name": "Bob",
+        "lead_last_name": "Jones",
         "company_name": "Global Tech",
         "company_website": "https://global-tech.example",
         "linkedin_url": None # Explicitly None
@@ -53,8 +54,8 @@ if __name__ == "__main__":
 
     # --- Test Case 3: Lead with only LinkedIn ---
     lead3 = {
-        "lead_name": "Charlie",
-        "last_name": "Brown",
+        "lead_first_name": "Charlie",
+        "lead_last_name": "Brown",
         "company_name": "Synergy Corp",
         "company_website": "", # Empty string
         "linkedin_url": "https://linkedin.com/in/charlie-brown-example"
@@ -63,8 +64,8 @@ if __name__ == "__main__":
 
     # --- Test Case 4: Lead with No Website or LinkedIn ---
     lead4 = {
-        "lead_name": "David",
-        "last_name": "Williams",
+        "lead_first_name": "David",
+        "lead_last_name": "Williams",
         "company_name": "Acme Inc.",
         "company_website": None,
         "linkedin_url": ""

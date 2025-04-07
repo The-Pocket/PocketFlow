@@ -7,12 +7,13 @@ from utils.ai import call_llm
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def generate_linkedin_analysis(lead_name: str, company_name: str, linkedin_url: str, linkedin_content: str, model: Optional[str] = None) -> str:
+def generate_linkedin_analysis(lead_first_name: str, lead_last_name: str, company_name: str, linkedin_url: str, linkedin_content: str, model: Optional[str] = None) -> str:
     """
     Generate a detailed analysis of a LinkedIn profile.
 
     Args:
-        lead_name: Name of the lead
+        lead_first_name: First name of the lead
+        lead_last_name: Last name of the lead
         company_name: Name of the company
         linkedin_url: URL of the LinkedIn profile
         linkedin_content: Scraped content from LinkedIn (should be formatted text)
@@ -21,9 +22,14 @@ def generate_linkedin_analysis(lead_name: str, company_name: str, linkedin_url: 
     Returns:
         Structured analysis of the LinkedIn profile, or an error string.
     """
+    # Construct full name for context
+    lead_full_name = f"{lead_first_name} {lead_last_name}".strip()
+    if not lead_full_name:
+        lead_full_name = "the lead" # Fallback if both are empty
+
     # Craft the prompt for LinkedIn analysis
     prompt = f"""
-You are an expert sales intelligence analyst. Create a detailed analysis of {lead_name}'s LinkedIn profile at {company_name}.
+You are an expert sales intelligence analyst. Create a detailed analysis of {lead_full_name}'s LinkedIn profile at {company_name}.
 
 LINKEDIN CONTENT:
 URL: {linkedin_url}
@@ -39,7 +45,7 @@ Based on this LinkedIn content, create a comprehensive analysis with three disti
 Format your response with clear section headers and concise, actionable points in each section.
 """
 
-    logging.info(f"Calling LLM to generate LinkedIn analysis for {lead_name} at {company_name}")
+    logging.info(f"Calling LLM to generate LinkedIn analysis for {lead_full_name} at {company_name}")
     analysis = call_llm(
         prompt=prompt,
         model=model,
@@ -51,7 +57,7 @@ Format your response with clear section headers and concise, actionable points i
         logging.error(f"Failed to generate LinkedIn analysis: {analysis}")
         return analysis # Return the error string
     elif isinstance(analysis, str):
-        logging.info(f"Generated LinkedIn analysis for {lead_name} at {company_name} ({len(analysis)} chars)")
+        logging.info(f"Generated LinkedIn analysis for {lead_full_name} at {company_name} ({len(analysis)} chars)")
         return analysis
     else:
         # Should not happen if json_mode=False, but handle defensively
@@ -90,7 +96,7 @@ if __name__ == '__main__':
     print(f"Lead: {test_lead}, Company: {test_company}, URL: {test_url}")
     # Test with default model
     print("\n--- Testing with Default Model ---")
-    result_default = generate_linkedin_analysis(test_lead, test_company, test_url, test_content)
+    result_default = generate_linkedin_analysis(test_lead, "", test_company, test_url, test_content)
     print("\nAnalysis Report (Default):")
     print(result_default)
     

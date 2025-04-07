@@ -16,21 +16,23 @@
         .results-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .results h2 { margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 0.3em; }
         .results h3 { margin-top: 1em; margin-bottom: 0.5em; color: #555; }
-        /* Style for the report content divs */
-        .results .report-content { 
+        /* Style for the report content pre tags */
+        .results pre.report-content { 
             background-color: #eee; 
             padding: 1em; 
             border-radius: 3px; 
-            white-space: pre-wrap;    /* Preserve whitespace, but wrap */
-            overflow-wrap: break-word; /* Force break long words/strings */
-            max-width: 100%;          /* Ensure it doesn't exceed parent width */
+            border: 1px solid #ddd;
+            white-space: pre-wrap;    /* Preserve whitespace AND wrap lines */
+            overflow-wrap: break-word; /* Break long words */
+            word-break: break-word;  /* Helps ensure breaks */
+            max-width: 100%;          
             max-height: 400px;        /* Limit height */
             overflow-y: auto;         /* Add vertical scrollbar if needed */
-            font-family: monospace;   /* Keep monospace font if desired */
-            border: 1px solid #ddd;
             box-sizing: border-box;   /* Include padding/border in width calculation */
+            font-family: monospace;   
+            line-height: 1.5;         
         }
-        /* Keep separate style for raw debug output if uncommented */
+        /* Keep separate style for raw debug output pre tag (no class) */
         .results pre { 
              background-color: #333; 
              color: #fff;
@@ -70,11 +72,11 @@
     {% endwith %}
 
     <form action="/process" method="post">
-        <label for="lead_name">Lead First Name:</label>
-        <input type="text" id="lead_name" name="lead_name" value="{{ lead_input.lead_name if lead_input else '' }}">
+        <label for="lead_first_name">Lead First Name:</label>
+        <input type="text" id="lead_first_name" name="lead_first_name" value="{{ lead_input.lead_first_name if lead_input else '' }}">
 
-        <label for="last_name">Lead Last Name (Optional):</label>
-        <input type="text" id="last_name" name="last_name" value="{{ lead_input.last_name if lead_input else '' }}">
+        <label for="lead_last_name">Lead Last Name (Optional):</label>
+        <input type="text" id="lead_last_name" name="lead_last_name" value="{{ lead_input.lead_last_name if lead_input else '' }}">
 
         <label for="company_name">Company Name:</label>
         <input type="text" id="company_name" name="company_name" value="{{ lead_input.company_name if lead_input else '' }}">
@@ -98,7 +100,7 @@
         <!-- Input Summary -->
         <div class="results-section">
             <h3>Input Summary</h3>
-            <p><strong>Lead:</strong> {{ results.get('lead_name', 'N/A') }} {{ results.get('last_name', '') }}</p>
+            <p><strong>Lead:</strong> {{ results.get('lead_first_name', 'N/A') }} {{ results.get('lead_last_name', '') }}</p>
             <p><strong>Company:</strong> {{ results.get('company_name', 'N/A') }}</p>
             <p><strong>Website:</strong> {{ results.get('company_website', 'N/A') }}</p>
             <p><strong>LinkedIn:</strong> {{ results.get('linkedin_url', 'N/A') }}</p>
@@ -111,7 +113,7 @@
             {% if results.get('email_subject') and 'Error:' not in results.get('email_subject') %}
                 <p><strong>Subject:</strong> {{ results.get('email_subject') }}</p>
                 <h3>Body:</h3>
-                <div class="report-content">{{ results.get('email_body', 'Could not generate email body.') }}</div>
+                <pre class="report-content">{{ results.get('email_body', 'Could not generate email body.') }}</pre>
             {% else %}
                 <p class="error-message">Email generation failed or produced an error.</p>
                 <p><i>{{ results.get('email_subject', 'No subject generated.') }}</i></p>
@@ -129,7 +131,7 @@
                 <div>
                     {% set report = results.get('website_report') %}
                     {% if report and 'Error' not in report and 'failed' not in report|lower %}
-                        <div class="report-content">{{ report }}</div>
+                        <pre class="report-content">{{ report }}</pre>
                     {% elif report %}
                         <p class="error-message">{{ report }}</p>
                     {% else %}
@@ -144,7 +146,7 @@
                 <div>
                     {% set report = results.get('linkedin_report') %}
                     {% if report and 'Error' not in report and 'failed' not in report|lower %}
-                        <div class="report-content">{{ report }}</div>
+                        <pre class="report-content">{{ report }}</pre>
                     {% elif report %}
                         <p class="error-message">{{ report }}</p>
                     {% else %}
@@ -159,7 +161,7 @@
                 <div>
                     {% set report = results.get('precision_intelligence_report') %}
                     {% if report and 'Error' not in report and 'failed' not in report|lower %}
-                        <div class="report-content">{{ report }}</div>
+                        <pre class="report-content">{{ report }}</pre>
                     {% elif report %}
                         <p class="error-message">{{ report }}</p>
                     {% else %}

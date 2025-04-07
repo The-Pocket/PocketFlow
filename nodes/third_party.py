@@ -2,18 +2,21 @@
 
 import json
 import logging
+from datetime import date
 from pocketflow import Node
 from utils import search, ai
+from utils.generators.third_party_analysis import generate_tavily_query_prompt, generate_analysis_prompt
 
 class DecideTavilyQueries(Node):
     """Uses AI to generate search queries for third-party sources based on lead and company info."""
     def prep(self, shared):
         """Prepare context for AI to generate search queries."""
         company_name = shared.get('company_name', '')
-        lead_name = shared.get('lead_name', '')
+        lead_first_name = shared.get('lead_first_name', '')
+        lead_last_name = shared.get('lead_last_name', '')
         
-        if not company_name and not lead_name:
-            logging.warning("Missing both company_name and lead_name for query generation")
+        if not company_name and not lead_first_name and not lead_last_name:
+            logging.warning("Missing lead name and company name for query generation")
             return None
             
         # Get additional context if available
@@ -23,7 +26,8 @@ class DecideTavilyQueries(Node):
         # Create a context dict
         context = {
             'company_name': company_name,
-            'lead_name': lead_name,
+            'lead_first_name': lead_first_name,
+            'lead_last_name': lead_last_name,
             'has_website_data': bool(website_report),
             'has_linkedin_data': bool(linkedin_report)
         }
@@ -37,24 +41,11 @@ class DecideTavilyQueries(Node):
             return json.dumps({"error": "Insufficient context for query generation"})
             
         company_name = context.get('company_name', '')
-        lead_name = context.get('lead_name', '')
+        lead_first_name = context.get('lead_first_name', '')
+        lead_last_name = context.get('lead_last_name', '')
         
-        # Craft prompt for AI
-        prompt = f"""
-You are an expert sales researcher. Generate 3-5 search queries to find valuable information about {lead_name} at {company_name} that would help in sales outreach.
-- Focus on company challenges, recent news, tech stack, or industry trends
-- Be specific and avoid generic queries
-- Prioritize queries that will yield actionable sales intelligence
-
-Return your response as a JSON list of strings only, in this format:
-```json
-[
-  "query 1",
-  "query 2",
-  "query 3"
-]
-```
-"""
+        # Craft prompt for AI using the generator
+        prompt = generate_tavily_query_prompt(lead_first_name=lead_first_name, lead_last_name=lead_last_name, company_name=company_name)
         
         try:
             response = ai.call_llm(prompt)
@@ -167,7 +158,8 @@ class AnalyzeThirdPartySources(Node):
         """Prepare third-party sources and context for analysis."""
         sources = shared.get('third_party_sources', [])
         company_name = shared.get('company_name', '')
-        lead_name = shared.get('lead_name', '')
+        lead_first_name = shared.get('lead_first_name', '')
+        lead_last_name = shared.get('lead_last_name', '')
         
         if not sources:
             logging.warning("No third-party sources to analyze")
@@ -177,7 +169,8 @@ class AnalyzeThirdPartySources(Node):
         context = {
             'sources': sources,
             'company_name': company_name,
-            'lead_name': lead_name
+            'lead_first_name': lead_first_name,
+            'lead_last_name': lead_last_name
         }
         
         logging.info(f"Preparing {len(sources)} sources for analysis")
@@ -190,32 +183,18 @@ class AnalyzeThirdPartySources(Node):
             
         sources = context['sources']
         company_name = context['company_name']
-        lead_name = context['lead_name']
-        
-        # Format sources for the prompt
-        source_text = ""
-        for i, source in enumerate(sources, 1):
-            title = source.get('title', 'Untitled')
-            snippet = source.get('snippet', '')
-            url = source.get('url', '')
-            source_text += f"Source {i}:\nTitle: {title}\nURL: {url}\nSnippet: {snippet}\n\n"
+        lead_first_name = context['lead_first_name']
+        lead_last_name = context['lead_last_name']
+        current_date_today = date.today()
             
-        # Craft the analysis prompt
-        analysis_prompt = f"""
-You are an expert sales intelligence analyst. Review the following information about {lead_name} at {company_name} and create a precision intelligence report.
-
-SOURCES:
-{source_text}
-
-Based on these sources, create a comprehensive intelligence report that includes:
-1. Key facts about the company and its industry
-2. Recent company news or developments
-3. Potential pain points or challenges
-4. Competitive landscape
-5. Opportunities for engagement
-
-Format your response as a concise, well-structured report. Focus on actionable intelligence that would be valuable for sales outreach.
-"""
+        # Craft the analysis prompt using the generator, passing the date
+        analysis_prompt = generate_analysis_prompt(
+            lead_first_name=lead_first_name, 
+            lead_last_name=lead_last_name,
+            company_name=company_name, 
+            sources=sources,
+            current_date=current_date_today
+        )
         
         try:
             logging.info("Calling LLM to generate third-party analysis report")

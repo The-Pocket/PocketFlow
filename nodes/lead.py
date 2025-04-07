@@ -16,7 +16,7 @@ class LoadLeadData(Node):
     
     def post(self, shared, prep_res, exec_res):
         """Validate required fields exist in shared data."""
-        required_fields = ['lead_name', 'company_name']
+        required_fields = ['lead_first_name', 'company_name']
         
         # Log what we found
         for field in required_fields:
@@ -24,7 +24,7 @@ class LoadLeadData(Node):
                 logging.warning(f"Required field '{field}' missing or empty in lead data.")
                 return "error"  # Potentially handle error path
         
-        logging.info(f"Loaded lead data: {shared['lead_name']} from {shared['company_name']}")
+        logging.info(f"Loaded lead data: {shared['lead_first_name']} from {shared['company_name']}")
         return "default"  # Proceed to next node (CheckWebsiteExists)
 
 
@@ -34,8 +34,8 @@ class StoreResults(Node):
         """Gathers all relevant data from shared store for saving."""
         # Select specific fields to save, ensuring keys match DB columns
         data_to_save = {
-            "lead_name": shared.get('lead_name'),
-            "last_name": shared.get('last_name'),
+            "lead_first_name": shared.get('lead_first_name'),
+            "lead_last_name": shared.get('lead_last_name'),
             "company_name": shared.get('company_name'),
             "company_website": shared.get('company_website'),
             "linkedin_url": shared.get('linkedin_url'),

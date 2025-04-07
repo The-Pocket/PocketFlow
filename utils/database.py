@@ -45,7 +45,8 @@ def save_to_supabase(lead_data: dict) -> bool:
     # data_to_upsert = {k: v for k, v in lead_data.items() if v is not None}
     data_to_upsert = lead_data # Keep None values
     
-    logging.info(f"Attempting to upsert data to Supabase table '{table_name}'. Lead: {data_to_upsert.get('lead_name')}")
+    lead_full_name = f"{data_to_upsert.get('lead_first_name', '')} {data_to_upsert.get('lead_last_name', '')}".strip() or "Unknown Lead"
+    logging.info(f"Attempting to upsert data to Supabase table '{table_name}'. Lead: {lead_full_name}")
     # print("Data for upsert:", data_to_upsert)
 
     try:
@@ -61,12 +62,12 @@ def save_to_supabase(lead_data: dict) -> bool:
         logging.info(f"Supabase insert response status: {response.data}") # Check response structure
         # Check if response indicates success, structure might vary
         if response.data:
-            logging.info(f"Successfully saved/updated lead '{data_to_upsert.get('lead_name')}' in Supabase.")
+            logging.info(f"Successfully saved/updated lead '{lead_full_name}' in Supabase.")
             return True
         else:
             # Supabase errors might be in response.error instead
             error_info = getattr(response, 'error', 'Unknown error')
-            logging.error(f"Supabase insert failed for lead '{data_to_upsert.get('lead_name')}'. Error: {error_info}")
+            logging.error(f"Supabase insert failed for lead '{lead_full_name}'. Error: {error_info}")
             return False
 
     except Exception as e:
@@ -82,8 +83,8 @@ if __name__ == '__main__':
     else:
         test_lead_for_db = {
             # "id": "some-uuid", # Don't include id if inserting new
-            "lead_name": "DB Test User",
-            "last_name": "Supabase",
+            "lead_first_name": "DB Test User",
+            "lead_last_name": "Supabase",
             "company_name": "Test Corp DB",
             "company_website": "https://db-test.example",
             # Use a unique linkedin_url for testing insertion/conflict
@@ -110,5 +111,6 @@ if __name__ == '__main__':
         success = save_to_supabase(test_lead_for_db)
         print(f"\nSave successful: {success}")
         if success:
-              print(f"Check your Supabase 'leads' table for lead: {test_lead_for_db['lead_name']} with LinkedIn URL: {test_lead_for_db['linkedin_url']}")
+            lead_full_name_test = f"{test_lead_for_db['lead_first_name']} {test_lead_for_db['lead_last_name']}".strip()
+            print(f"Check your Supabase 'leads' table for lead: {lead_full_name_test} with LinkedIn URL: {test_lead_for_db['linkedin_url']}")
         print("---------------------------") 
