@@ -16,8 +16,8 @@ def run_single_lead(lead_info: dict):
     # Create a fresh shared store for this run, pre-populated with lead info
     shared_store = lead_info.copy() # Start with lead info
     
-    # Create the flow instance
-    v1_flow = create_v1_lead_processing_flow()
+    # Create the flow instance, passing initial data for conditional setup
+    v1_flow = create_v1_lead_processing_flow(initial_shared_data=shared_store)
     
     # Run the flow - initial data is already in shared_store
     # The first node (LoadLeadData) will now mostly just initialize placeholders

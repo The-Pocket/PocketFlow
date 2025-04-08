@@ -32,7 +32,7 @@ class CheckLinkedInExists(Node):
             return None
             
         # Search web for LinkedIn profile
-        search_results = search.web_search(search_query, max_results=5)
+        search_results = search.call_tavily_search(search_query, max_results=5)
         return search_results
         
     def post(self, shared, prep_res, exec_res):

@@ -45,7 +45,7 @@ def call_tavily_search(query: str, max_results: int = 3) -> list[dict]:
         # Use the basic search endpoint
         response = tavily_client.search(
             query=query,
-            search_depth="basic", # basic is often sufficient, use 'advanced' if needed
+            search_depth="advanced", # basic is often sufficient, use 'advanced' if needed
             max_results=max_results,
             include_answer=False, # We don't need Tavily's generated answer
             include_raw_content=False # Raw content not needed for this use case
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     if not tavily_client:
         print("Skipping test: Tavily client not initialized.")
     else:
-        test_query = "OpenAI review site:g2.com"
+        test_query = "Who is a competitor of Nylas?"
         search_results = call_tavily_search(test_query, max_results=2)
         
         print(f"\n--- Tavily Search Results for '{test_query}' ---")

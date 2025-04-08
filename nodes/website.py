@@ -18,7 +18,7 @@ class CheckWebsiteExists(Node):
     def exec(self, search_query):
         """Search for the company website."""
         # Use web search utility (returns list of results)
-        search_results = search.web_search(search_query, max_results=5)
+        search_results = search.call_tavily_search(search_query, max_results=5)
         return search_results
 
     def post(self, shared, prep_res, exec_res):

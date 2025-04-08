@@ -66,9 +66,9 @@ def process_lead_with_flow(lead_info: dict) -> dict:
     shared_store["dev_local_mode"] = DEV_LOCAL_MODE
     
     try:
-        # Create the flow instance
+        # Create the flow instance, passing initial data for conditional setup
         # Consider caching the flow creation if it's expensive, but for now, create each time
-        v1_flow: Flow = create_v1_lead_processing_flow()
+        v1_flow: Flow = create_v1_lead_processing_flow(initial_shared_data=shared_store)
         
         # Run the flow
         v1_flow.run(shared=shared_store)

@@ -12,7 +12,7 @@ def generate_tavily_query_prompt(lead_first_name: str, lead_last_name: str, comp
     target_lead = lead_full_name if lead_full_name else 'the lead' # Use full name for search terms
     
     return f"""
-You are an expert sales researcher. Generate 3-5 specific, actionable search queries to find valuable information about {lead_str} {company_str} that would help in sales outreach. Focus *only* on third-party sources (news, reviews, forums, conference sites, etc.), avoiding the company's own website or LinkedIn.
+You are an expert sales researcher. Generate 3-5 specific, actionable search queries to find valuable information about {lead_full_name} {company_str} that would help in sales outreach. Focus *only* on third-party sources (news, reviews, forums, conference sites, etc.), avoiding the company's own website or LinkedIn.
 
 GOALS:
 - Find company challenges, recent news (partnerships, funding, acquisitions), tech stack mentions, or relevant industry trends.
