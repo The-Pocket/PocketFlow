@@ -141,14 +141,16 @@ class SearchThirdPartySources(Node):
         return all_results
         
     def post(self, shared, prep_res, exec_res):
-        """Store search results in shared."""
+        """Store search results (raw and processed) in shared."""
         if not exec_res:
             logging.warning("No third-party search results found")
+            shared['raw_third_party_search_results'] = [] # Store empty list
             shared['third_party_sources'] = []
             return "no_results"
             
-        shared['third_party_sources'] = exec_res
-        logging.info(f"Stored {len(exec_res)} third-party search results")
+        shared['raw_third_party_search_results'] = exec_res # Store raw results
+        shared['third_party_sources'] = exec_res # Keep original key
+        logging.info(f"Stored {len(exec_res)} third-party search results (raw and processed)")
         return "default"
 
 

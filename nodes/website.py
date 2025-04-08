@@ -77,14 +77,17 @@ class ScrapeWebsite(Node):
             return None
 
     def post(self, shared, prep_res, exec_res):
-        """Store scraped content in shared or handle failure."""
+        """Store scraped content (raw and processed) in shared or handle failure."""
         if exec_res:
             # Successfully scraped content
-            shared['website_content'] = exec_res
+            shared['raw_website_content'] = exec_res # Store raw response
+            shared['website_content'] = exec_res # Keep original key for downstream analysis nodes
             logging.info(f"Successfully scraped website content: {len(exec_res)} characters")
             return "default"  # Proceed to analysis
         else:
             # Failed to scrape
+            shared['raw_website_content'] = None # Indicate failure
+            shared['website_content'] = None
             logging.warning("Website scraping failed or returned no content")
             return "scrape_failed"  # Skip website analysis
 

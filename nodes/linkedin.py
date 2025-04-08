@@ -83,14 +83,17 @@ class ScrapeLinkedIn(Node):
             return None
             
     def post(self, shared, prep_res, exec_res):
-        """Store scraped LinkedIn content in shared."""
+        """Store scraped LinkedIn content (raw and processed) or handle failure."""
         if exec_res:
-            shared['linkedin_content'] = exec_res
-            logging.info(f"Successfully scraped LinkedIn content: {len(exec_res)} characters")
-            return "default"  # Proceed to analysis
+            shared['raw_linkedin_content'] = exec_res # Store raw response
+            shared['linkedin_content'] = exec_res # Keep original key
+            logging.info(f"Successfully scraped LinkedIn profile: {len(exec_res)} characters")
+            return "default"
         else:
-            logging.warning("LinkedIn scraping failed or returned no content")
-            return "scrape_failed"  # Skip LinkedIn analysis
+            shared['raw_linkedin_content'] = None
+            shared['linkedin_content'] = None
+            logging.warning("LinkedIn scraping failed or returned no content.")
+            return "scrape_failed"
 
 
 class AnalyzeLinkedIn(Node):
