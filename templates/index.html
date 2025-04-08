@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lead Email Generator</title>
+    <!-- Simple styling - replace with a proper CSS framework like Bootstrap later -->
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 2em auto; padding: 1em; line-height: 1.6; }
+        h1, h2, h3 { color: #333; }
+        form label { display: block; margin-bottom: 0.5em; font-weight: bold; }
+        form input[type=text], form input[type=url] { width: 95%; padding: 0.5em; margin-bottom: 1em; border: 1px solid #ccc; }
+        form button { padding: 0.7em 1.5em; background-color: #007bff; color: white; border: none; cursor: pointer; font-size: 1em; }
+        .results-container { margin-top: 2em; padding: 1em; border: 1px solid #eee; background-color: #f9f9f9; border-radius: 5px; }
+        .results-section { margin-bottom: 1.5em; padding-bottom: 1.5em; border-bottom: 1px dashed #ddd; }
+        .results-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .results h2 { margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 0.3em; }
+        .results h3 { margin-top: 1em; margin-bottom: 0.5em; color: #555; }
+        /* Style for the report content pre tags */
+        .results pre.report-content { 
+            background-color: #eee; 
+            padding: 1em; 
+            border-radius: 3px; 
+            border: 1px solid #ddd;
+            white-space: pre-wrap;    /* Preserve whitespace AND wrap lines */
+            overflow-wrap: break-word; /* Break long words */
+            word-break: break-word;  /* Helps ensure breaks */
+            max-width: 100%;          
+            max-height: 400px;        /* Limit height */
+            overflow-y: auto;         /* Add vertical scrollbar if needed */
+            box-sizing: border-box;   /* Include padding/border in width calculation */
+            font-family: monospace;   
+            line-height: 1.5;         
+        }
+        /* Keep separate style for raw debug output pre tag (no class) */
+        .results pre { 
+             background-color: #333; 
+             color: #fff;
+             padding: 1em; 
+             border-radius: 3px; 
+             white-space: pre-wrap;
+             overflow-wrap: break-word;
+             max-width: 100%; 
+             max-height: 400px;
+             overflow: auto; /* Both x and y scroll if needed */
+             font-family: monospace;
+             border: 1px solid #555;
+             box-sizing: border-box; 
+        }
+        .results strong { color: #0056b3; }
+        .error-message { color: #dc3545; font-style: italic; }
+        .flash { padding: 1em; margin-bottom: 1em; border-radius: 3px; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        details { border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1em; background-color: #fff; }
+        summary { font-weight: bold; padding: 0.8em; cursor: pointer; background-color: #f1f1f1; border-bottom: 1px solid #ccc; }
+        details[open] summary { border-bottom: 1px solid #ccc; background-color: #e9e9e9; }
+        details div { padding: 1em; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <h1>Lead Email Generator (V1)</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/process" method="post">
+        <label for="lead_first_name">Lead First Name:</label>
+        <input type="text" id="lead_first_name" name="lead_first_name" value="{{ lead_input.lead_first_name if lead_input else '' }}">
+
+        <label for="lead_last_name">Lead Last Name (Optional):</label>
+        <input type="text" id="lead_last_name" name="lead_last_name" value="{{ lead_input.lead_last_name if lead_input else '' }}">
+
+        <label for="company_name">Company Name:</label>
+        <input type="text" id="company_name" name="company_name" value="{{ lead_input.company_name if lead_input else '' }}">
+
+        <label for="company_website">Company Website URL (Optional):</label>
+        <input type="url" id="company_website" name="company_website" placeholder="https://example.com" value="{{ lead_input.company_website if lead_input else '' }}">
+
+        <label for="linkedin_url">LinkedIn Profile URL (Optional):</label>
+        <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/..." value="{{ lead_input.linkedin_url if lead_input else '' }}">
+
+        <label for="product_service">What are you selling? (Your product/service):</label>
+        <input type="text" id="product_service" name="product_service" placeholder="e.g., AI-powered CRM software" value="{{ lead_input.product_service if lead_input else '' }}">
+
+        <div style="margin-top: 1em; margin-bottom: 1em; padding: 0.5em; border: 1px solid #eee; border-radius: 4px;">
+            <p style="margin-top: 0; margin-bottom: 0.5em; font-weight: bold;">Analysis Options:</p>
+            <label for="enable_website_analysis" style="display: inline-block; margin-right: 1em; font-weight: normal;">
+                <input type="checkbox" id="enable_website_analysis" name="enable_website_analysis" value="true" {{ 'checked' if lead_input is none or lead_input.get('enable_website_analysis', True) }}>
+                Run Website Analysis
+            </label>
+            <label for="enable_linkedin_analysis" style="display: inline-block; margin-right: 1em; font-weight: normal;">
+                <input type="checkbox" id="enable_linkedin_analysis" name="enable_linkedin_analysis" value="true" {{ 'checked' if lead_input is none or lead_input.get('enable_linkedin_analysis', True) }}>
+                Run LinkedIn Analysis
+            </label>
+            <label for="enable_third_party_analysis" style="display: inline-block; font-weight: normal;">
+                <input type="checkbox" id="enable_third_party_analysis" name="enable_third_party_analysis" value="true" {{ 'checked' if lead_input is none or lead_input.get('enable_third_party_analysis', True) }}>
+                Run Third-Party Search
+            </label>
+        </div>
+
+        <button type="submit">Generate Email</button>
+    </form>
+
+    {% if results %}
+    <div class="results-container">
+        <h2>Results</h2>
+
+        <!-- Input Summary -->
+        <div class="results-section">
+            <h3>Input Summary</h3>
+            <p><strong>Lead:</strong> {{ results.get('lead_first_name', 'N/A') }} {{ results.get('lead_last_name', '') }}</p>
+            <p><strong>Company:</strong> {{ results.get('company_name', 'N/A') }}</p>
+            <p><strong>Website:</strong> {{ results.get('company_website', 'N/A') }}</p>
+            <p><strong>LinkedIn:</strong> {{ results.get('linkedin_url', 'N/A') }}</p>
+            <p><strong>Your Product/Service:</strong> {{ results.get('product_service', 'N/A') }}</p>
+        </div>
+
+        <!-- Generated Email -->
+        <div class="results-section">
+            <h3>Generated Email</h3>
+            {% if results.get('email_subject') and 'Error:' not in results.get('email_subject') %}
+                <p><strong>Subject:</strong> {{ results.get('email_subject') }}</p>
+                <h3>Body:</h3>
+                <pre class="report-content">{{ results.get('email_body', 'Could not generate email body.') }}</pre>
+            {% else %}
+                <p class="error-message">Email generation failed or produced an error.</p>
+                <p><i>{{ results.get('email_subject', 'No subject generated.') }}</i></p>
+                <p><i>{{ results.get('email_body', 'No body generated.') }}</i></p>
+            {% endif %}
+        </div>
+        
+        <!-- Analysis Reports -->
+        <div class="results-section">
+            <h3>Analysis Reports</h3>
+
+            <!-- Website Analysis -->
+            <details>
+                <summary>Website Analysis Report</summary>
+                <div>
+                    {% set report = results.get('website_report') %}
+                    {% if report and 'Error' not in report and 'failed' not in report|lower %}
+                        <pre class="report-content">{{ report }}</pre>
+                    {% elif report %}
+                        <p class="error-message">{{ report }}</p>
+                    {% else %}
+                        <p><i>No website analysis was performed or generated.</i></p>
+                    {% endif %}
+                </div>
+            </details>
+
+            <!-- LinkedIn Analysis -->
+            <details>
+                <summary>LinkedIn Analysis Report</summary>
+                <div>
+                    {% set report = results.get('linkedin_report') %}
+                    {% if report and 'Error' not in report and 'failed' not in report|lower %}
+                        <pre class="report-content">{{ report }}</pre>
+                    {% elif report %}
+                        <p class="error-message">{{ report }}</p>
+                    {% else %}
+                        <p><i>No LinkedIn analysis was performed or generated.</i></p>
+                    {% endif %}
+                </div>
+            </details>
+
+            <!-- Third-Party Intelligence -->
+            <details>
+                <summary>Third-Party Precision Intelligence Report</summary>
+                <div>
+                    {% set report = results.get('precision_intelligence_report') %}
+                    {% if report and 'Error' not in report and 'failed' not in report|lower %}
+                        <pre class="report-content">{{ report }}</pre>
+                    {% elif report %}
+                        <p class="error-message">{{ report }}</p>
+                    {% else %}
+                        <p><i>No third-party intelligence analysis was performed or generated.</i></p>
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+
+        <!-- Optional: Raw Shared Store for Debugging -->
+        <!-- 
+        <div class="results-section">
+            <h3>Raw Data (Debug)</h3>
+            <details>
+                <summary>Show Raw Shared Store</summary>
+                <div>
+                    <pre>{{ results | tojson(indent=2) }}</pre>
+                </div>
+            </details>
+        </div>
+        -->
+
+    </div>
+    {% endif %}
+
+</body>
+</html> 
