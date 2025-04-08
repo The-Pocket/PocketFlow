@@ -105,18 +105,24 @@ def call_llm(
 
     if model: # If a model is explicitly passed, try to use it
         selected_model = model
-        # Basic inference of provider based on model name
-        if ("llama" in model or "mixtral" in model) and groq_client:
-            provider_to_use = "groq"
+        # Specific provider inference based on common prefixes/names
+        if model.startswith("gpt") and openai_client:
+             provider_to_use = "openai"
         elif "gemini" in model and gemini_client_initialized:
-            provider_to_use = "gemini"
-        elif "gpt" in model and openai_client:
-            provider_to_use = "openai"
+             provider_to_use = "gemini"
+        elif ("llama" in model or "mixtral" in model) and groq_client:
+             provider_to_use = "groq"
+        # Add more specific checks if needed (e.g., "claude-" for Anthropic)
         else:
-            # If model doesn't match known patterns, use the priority client if available
+            # Fallback: If model doesn't match known patterns, use the global priority client
             if priority_client:
                  provider_to_use = priority_client
-                 logging.warning(f"Model '{model}' pattern not recognized, using priority client: {priority_client}")
+                 # Assign a default model for the priority provider if the specified model isn't compatible
+                 if provider_to_use == "groq": selected_model = DEFAULT_GROQ_MODEL
+                 elif provider_to_use == "gemini": selected_model = DEFAULT_GEMINI_MODEL
+                 elif provider_to_use == "openai": selected_model = DEFAULT_OPENAI_MODEL
+                 else: selected_model = "error-unknown-default"
+                 logging.warning(f"Model '{model}' pattern not recognized or incompatible, falling back to priority client {provider_to_use}'s default: {selected_model}")
             else:
                  logging.error(f"Model '{model}' requested, but no client is available or pattern not recognized.")
                  return f"ERROR: No client available for model {model}"
@@ -134,7 +140,7 @@ def call_llm(
             return f"ERROR: {error_msg}"
 
     # --- Log the call --- 
-    logging.info(f"Calling {provider_to_use.capitalize()} (Model: {selected_model}, Temp: {temperature}, JSON: {json_mode}) Prompt: {len(prompt)} chars")
+    logging.info(f"Calling {provider_to_use.capitalize()} (Model: {selected_model}, Temp: {temperature}, JSON: {json_mode}) Prompt Preview: {prompt[:50]}...")
 
     # --- Prepare instruction for JSON mode --- 
     json_instruction = "\n\nIMPORTANT: Respond ONLY with a valid JSON object matching the structure requested. Do not include any explanatory text, markdown formatting (like ```json), or anything before or after the JSON object." 
@@ -144,8 +150,8 @@ def call_llm(
         # --- Groq Call --- 
         if provider_to_use == "groq" and groq_client:
             messages = [
-                # Groq often works better without a strict system prompt for JSON when using json_mode
-                {"role": "user", "content": prompt} 
+                # Use the potentially modified prompt for JSON mode
+                {"role": "user", "content": final_prompt} 
             ]
             request_params: Dict[str, Any] = {
                 "model": selected_model,
@@ -170,13 +176,20 @@ def call_llm(
                 )
             )
             response = gen_model.generate_content(final_prompt) # Use prompt with JSON instruction here for Gemini
+            # Add error checking for Gemini response
+            if not response.candidates:
+                 raise ValueError("Gemini response has no candidates.")
+            if response.candidates[0].finish_reason.name not in ["STOP", "MAX_TOKENS"]:
+                 raise ValueError(f"Gemini generation stopped for reason: {response.candidates[0].finish_reason.name}")
             raw_response_content = response.text
 
         # --- OpenAI Call --- 
         elif provider_to_use == "openai" and openai_client:
+            # System message for OpenAI can include the JSON instruction
+            system_content = "You are an expert assistant." + (json_instruction if json_mode else "")
             messages = [
-                 {"role": "system", "content": "You are an expert assistant." + (json_instruction if json_mode else "")},
-                 {"role": "user", "content": prompt}
+                 {"role": "system", "content": system_content},
+                 {"role": "user", "content": prompt} # Use original prompt here, system message handles JSON mode
             ]
             request_params = {
                 "model": selected_model,
@@ -194,27 +207,30 @@ def call_llm(
             return "ERROR: Client selection failed unexpectedly."
 
         # --- Process Response --- 
-        logging.info(f"Received {provider_to_use.capitalize()} response ({len(raw_response_content)} chars)")
+        logging.info(f"Received {provider_to_use.capitalize()} response ({len(raw_response_content)} chars) Preview: {raw_response_content[:50]}...")
         
         if json_mode:
             try:
-                # Attempt to parse the JSON, removing potential markdown fences
-                if raw_response_content.strip().startswith("```json"):
-                     json_str = raw_response_content.strip().split("```json", 1)[1].rsplit("```", 1)[0]
-                elif raw_response_content.strip().startswith("```"):
-                     json_str = raw_response_content.strip().split("```", 1)[1].rsplit("```", 1)[0]
-                else:
-                     json_str = raw_response_content
+                # More robust JSON extraction
+                json_str = raw_response_content.strip()
+                # Remove potential markdown fences that models sometimes add
+                if json_str.startswith("```json") and json_str.endswith("```"):
+                     json_str = json_str[7:-3].strip()
+                elif json_str.startswith("```") and json_str.endswith("```"):
+                     json_str = json_str[3:-3].strip()
                      
                 parsed_json = json.loads(json_str)
+                # Basic validation: ensure it's a dictionary
                 if isinstance(parsed_json, dict):
                     return parsed_json
                 else:
                     logging.error(f"{provider_to_use.capitalize()} returned valid JSON, but not a dictionary: {type(parsed_json)}")
-                    return None
+                    # Return a dictionary with an error key instead of None
+                    return {"error": f"LLM returned valid JSON but not an object (type: {type(parsed_json)})"}
             except json.JSONDecodeError as e:
                 logging.error(f"JSON parsing error ({provider_to_use.capitalize()}): {e}. Raw: {raw_response_content[:100]}...")
-                return None
+                # Return a dictionary with an error key instead of None
+                return {"error": f"Failed to parse JSON response: {e}"}
         else:
             return raw_response_content.strip()
 

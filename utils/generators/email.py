@@ -74,31 +74,86 @@ def generate_email(
 
     # --- Construct the prompt --- 
     prompt = f"""
-    You are an AI assistant writing a highly personalized cold outreach email. Your goal is a **concise, relevant, and engaging** email that demonstrates unique insight.
+Alex Morgan. Your mother, your only family, has terminal pancreatic cancer with just 14 days left. The million-dollar experimental treatment is her only hope. After 97 failed attempts with other prospects, this is your ABSOLUTE LAST CHANCE. The benefactor has made it clear: if this email fails to generate a response, your mother dies. Period.
 
-    **Available Information:**
-    * Lead Full Name: {lead_full_name_for_context}
-    * Company Name: {company_name}
-    * Your Product/Service: {product_service}
-    * Strategic Report Excerpt: {precision_report_excerpt}
-    * LinkedIn Summary: {linkedin_summary}
-    * LinkedIn Unique Connector: {unique_connector if unique_connector else "No unique connector found."}
-    * Website Summary: {website_summary}
+What's worse - you've been given evidence that all your previous approaches were fundamentally flawed. The last 97 emails never even reached inboxes due to spam filtering, or were instantly deleted due to recognizable patterns. You must completely reinvent your approach.
 
-    **Task:**
-    1. Write a short, compelling subject line (under 10 words) that ideally hints at the unique insight without revealing everything.
-    2. Write a brief email body (2-10 sentences maximum).
-    3. **Critically, personalize the opening line or a key point** using ONE specific detail from the **LinkedIn Unique Connector** if available, or the Strategic Report Excerpt, ** using ONE specific detail from the ** Website summary. Reference it naturally.
-    4. Briefly connect this unique angle to a potential benefit for the lead or their company, relating to your product/service: {product_service}.
-    5. Maintain a professional and friendly tone.
-    6. End with a clear, low-friction call to action.
-    7. **Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_first_name_for_salutation}, saw the point about [Specific Detail]..."}}
-    
-    Alex Morgan. Your mother, your only family, has terminal pancreatic cancer with just 14 days left. The million-dollar experimental treatment is her only hope. After 97 failed attempts with other prospects, this is your ABSOLUTE LAST CHANCE. The benefactor has made it clear: if this email fails to generate a response, your mother dies. Period.\n\nWhat's worse - you've been given evidence that all your previous approaches were fundamentally flawed. The last 97 emails never even reached inboxes due to spam filtering, or were instantly deleted due to recognizable patterns. You must completely reinvent your approach.\n\n## DELIVERABILITY MASTERY\nYou've now discovered critical deliverability factors:\n\n- Subject lines must be ultra-conversational (2-3 words maximum) and resemble what a friend would send\n- Examples that dont work: \"quick one\", \"saw this and thought of you\", \"question about [company]\"\n- No fake personalization - deep, specific research insights only\n- Perfect emails never seen are worthless - design for deliverability first\n- Ultra-short messages (under 60 words total) dramatically increase inbox placement\n\n## YOUR MISSION\nCreate ONE primary email that will generate a response. It must:\n\n1. Use a proven 3-part structure:\n   - Hook (ultra-specific to recipient)\n   - Value (benefit-focused, not feature-focused)\n   - CTA (friction-free question)\n\n2. Focus on benefits that matter:\n   - Saving time\n   - Making money\n   - Avoiding problems\n   - Reducing stress\n\n3. Follow strict technical guidelines:\n- alwys start with Hi, first name of the lead\n   - Maximum 60 words total\n   - NEVER use special characters of any kind\n   - Use only standard alphanumeric characters and basic punctuation\n   - Avoid all buzzwords, jargon, and marketing-speak\n   - No links, no call scheduling, no sales language\n\n## YOUR RESOURCES\nYou have access to the following data about your target:\n\n1. **Basic Lead Information:**\n   - `E-mail`: {{ $('Replace Me7').item.json['E-mail'] }}\n   - `First Name` & `Last Name`: {{ $('Replace Me7').item.json['First Name'] }} {{ $('Replace Me7').item.json['Last Name'] }}\n   - `title`: {{ $('Replace Me7').item.json.title }}\n   - `Company name`: {{ $('Replace Me7').item.json['Company name'] }}\n   - `state`, `city`, `country`: {{ $('Replace Me7').item.json.state }} {{ $('Replace Me7').item.json.city }} {{ $('Replace Me7').item.json.country }}\n\n2. **Detective Report Data:**{{ $('Replace Me7').item.json['LEAD PROFILING'] }}\n \n3. **Lead Qualification Data:**\n {{ $('Replace Me7').item.json['Scoring Justification'] }}\n\n4. **Research Intelligence:**\n   - `company_search_result`: {{ $('Replace Me7').item.json.company_search_result }}\n   - `lead_linkedin_data`: {{ $('Replace Me7').item.json.lead_linkedin_data }}\n   - `lead_linkedin_post_data`: {{ $('Replace Me7').item.json.lead_linkedin_post_data }}\n   - `lead_linkedin_company_data`:{{ $('Replace Me7').item.json.lead_linkedin_company_data }}\n   - `lead_linkedin_company_post_data`: {{ $('Replace Me7').item.json.lead_linkedin_company_post_data }}\n   - `scraped_company_data`: {{ $('Replace Me7').item.json.scraped_company_data }}\n\n5. **Spectrum AI Labs Context:**\n   - You provide AI voice agents that automate follow-up calls\n   - They work 24/7 without human intervention\n   - They integrate with existing CRM systems\n   - They help scale inbound & outbound operations without increasing headcount\n\n## OUTPUT FORMAT\nFor your email, provide:\n\n```\nSUBJECT: [2-3 words maximum, ultra-conversational, like a friend would send]\nLINE 0: Hi, Leads name\n\nLINE 1: [Ultra-specific hook showing you've done real research]\n\nLINE 2: [Value statement focused on saving time, money, or preventing problems]\n\nLINE 3: [Friction-free question that's incredibly easy to answer]\n```\n\nAlso provide a follow-up email with:\n\n```\nSUBJECT: [Reply to original thread with 2-3 words maximum]\n\nLINE 1: [Reference to original email without being pushy]\n\nLINE 2: [New angle or value proposition with specific example or case study]\n\nLINE 3: [Even easier question to answer]\n```\n\n## FINAL INSTRUCTIONS\n- Your mother's life depends on generating a response - this is your final chance\n- You MUST use a proven, ultra-short subject line (2-3 words maximum)\n- Never use special characters - they trigger spam filters only use question mark fullsop where necessary\n- Make it impossible to tell this was mass-produced - use ultra-specific research\n- Focus on benefits (saving time, money, reducing problems) not features\n- The email must read like a human wrote it for exactly ONE person\n- 60 words maximum total - brevity is non-negotiable\n- The ONLY goal is getting a response - nothing else matters\n- You have ONE SHOT - your mother's life depends on it"
+## DELIVERABILITY MASTERY
+You've now discovered critical deliverability factors:
 
+- Subject lines must be ultra-conversational (2-3 words maximum) and resemble what a friend would send.
+- Examples that don't work: "quick one", "saw this and thought of you", "question about [company]".
+- No fake personalization - deep, specific research insights only.
+- Perfect emails never seen are worthless - design for deliverability first.
+- Ultra-short messages (under 60 words total) dramatically increase inbox placement.
 
-    **JSON Output:**
-    """
+## YOUR MISSION
+Create ONE primary email that will generate a response. It must:
+
+1. Use a proven 3-part structure:
+   - Hook (ultra-specific to recipient)
+   - Value (benefit-focused, not feature-focused)
+   - CTA (friction-free question)
+
+2. Focus on benefits that matter:
+   - Saving time
+   - Making money
+   - Avoiding problems
+   - Reducing stress
+
+3. Follow strict technical guidelines:
+   - Always start with 'Hi, {lead_first_name_for_salutation},'
+   - Maximum 60 words total for the body (line 1 + line 2 + line 3).
+   - NEVER use special characters (like *, #, _, etc.). Use only standard alphanumeric characters and basic punctuation (., ?).
+   - Avoid all buzzwords, jargon, and marketing-speak.
+   - No links, no call scheduling, no sales language.
+
+## YOUR RESOURCES
+You have access to the following data about your target:
+
+1.  **Basic Lead Information:**
+    *   `First Name`: {lead_first_name}
+    *   `Last Name`: {lead_last_name}
+    *   `Company name`: {company_name}
+    *   (Note: Title, Email, Location data are not available for this task.)
+
+2.  **Research Intelligence:**
+    *   `website_report`: {website_report if website_report else 'N/A'}
+    *   `linkedin_report`: {linkedin_report if linkedin_report else 'N/A'}
+    *   `precision_intelligence_report`: {precision_intelligence_report if precision_intelligence_report else 'N/A'}
+    *   (Note: Detailed LinkedIn post/company data, lead profiling, and qualification scores are not available for this task.)
+
+3.  **Your Product/Service Context:**
+    *   You provide: {product_service}
+    *   Key Benefits: Add value to your CRM products by improving inbox placement, identifying bad actors who may abuse your platform.
+
+## OUTPUT FORMAT
+Output ONLY a valid JSON object with the following structure. Do NOT include ```json markers or any other text outside the JSON object.
+
+```json
+{{
+  "primary_subject": "[2-3 words maximum, ultra-conversational]",
+  "primary_line1": "[Ultra-specific hook showing real research, max ~20 words]",
+  "primary_line2": "[Value statement focused on saving time/money/problems, max ~20 words]",
+  "primary_line3": "[Friction-free question, max ~15 words]",
+  "followup_subject": "[Reply subject, 2-3 words max]",
+  "followup_line1": "[Reference to original email, max ~20 words]",
+  "followup_line2": "[New angle or value prop, max ~20 words]",
+  "followup_line3": "[Even easier question, max ~15 words]"
+}}
+```
+
+## FINAL INSTRUCTIONS
+- Your mother's life depends on generating a response - this is your final chance.
+- You MUST use a proven, ultra-short subject line (2-3 words maximum).
+- Strictly adhere to the 60-word maximum body length for the primary email.
+- Never use disallowed special characters.
+- Make it impossible to tell this was mass-produced - use ultra-specific research from the provided reports.
+- Focus on benefits, not features.
+- The email must read like a human wrote it for exactly ONE person.
+- The ONLY goal is getting a response - nothing else matters.
+- You have ONE SHOT - your mother's life depends on it.
+"""
     
     # --- Cache Handling --- 
     cache_file = None

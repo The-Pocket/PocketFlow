@@ -142,15 +142,22 @@ class SearchThirdPartySources(Node):
         
     def post(self, shared, prep_res, exec_res):
         """Store search results (raw and processed) in shared."""
+        logging.debug(f"SearchThirdPartySources post exec_res type: {type(exec_res)}, content: {exec_res}") # DEBUG LOG
         if not exec_res:
-            logging.warning("No third-party search results found")
+            logging.warning("No third-party search results found or exec_res is empty/None")
             shared['raw_third_party_search_results'] = [] # Store empty list
             shared['third_party_sources'] = []
             return "no_results"
             
-        shared['raw_third_party_search_results'] = exec_res # Store raw results
-        shared['third_party_sources'] = exec_res # Keep original key
-        logging.info(f"Stored {len(exec_res)} third-party search results (raw and processed)")
+        # Ensure exec_res is treated as the list it should be
+        results_list = exec_res if isinstance(exec_res, list) else []
+        if not results_list:
+             logging.warning("exec_res was not None/empty but not a non-empty list. Storing empty results.")
+        
+        logging.info(f"Storing {len(results_list)} third-party search results (raw and processed)") # INFO LOG before storing
+        shared['raw_third_party_search_results'] = results_list # Store raw results
+        shared['third_party_sources'] = results_list # Keep original key
+        
         return "default"
 
 

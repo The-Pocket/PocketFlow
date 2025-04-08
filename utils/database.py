@@ -50,25 +50,29 @@ def save_to_supabase(lead_data: dict) -> bool:
     # print("Data for upsert:", data_to_upsert)
 
     try:
-        # If linkedin_url is provided and intended as the conflict target for upsert:
-        # response = supabase.table(table_name).upsert(data_to_upsert, on_conflict='linkedin_url').execute()
+        # Use upsert with on_conflict='linkedin_url' to update if URL exists, otherwise insert.
+        # Ensure 'linkedin_url' has a UNIQUE constraint in your Supabase table.
+        response = supabase.table(table_name).upsert(
+            data_to_upsert, 
+            on_conflict='linkedin_url' 
+            # ignore_duplicates=False is default, ensures update happens
+            ).execute()
         
-        # Simpler approach: Insert. Let UNIQUE constraint handle conflicts if linkedin_url exists.
-        # Or use upsert without on_conflict if relying on primary key (which we generate on insert)
-        # Using insert for now, assuming we mostly add new leads via this flow.
-        # If you need to UPDATE based on linkedin_url, use upsert with on_conflict.
-        response = supabase.table(table_name).insert(data_to_upsert).execute()
-        
-        logging.info(f"Supabase insert response status: {response.data}") # Check response structure
-        # Check if response indicates success, structure might vary
-        if response.data:
-            logging.info(f"Successfully saved/updated lead '{lead_full_name}' in Supabase.")
+        # Supabase v2+ returns APIResponse with data/error
+        if getattr(response, 'error', None):
+            error_info = response.error
+            # Check for specific duplicate key error (though upsert should handle it)
+            if hasattr(error_info, 'code') and error_info.code == '23505': # Postgres unique violation code
+                 logging.warning(f"Upsert resulted in unique constraint conflict (should not happen with correct on_conflict): {error_info.message}")
+            else:
+                 logging.error(f"Supabase upsert failed for lead '{lead_full_name}'. Error: {error_info.message}")
+            return False
+        elif response.data:
+            logging.info(f"Successfully saved/updated lead '{lead_full_name}' in Supabase via upsert.")
             return True
         else:
-            # Supabase errors might be in response.error instead
-            error_info = getattr(response, 'error', 'Unknown error')
-            logging.error(f"Supabase insert failed for lead '{lead_full_name}'. Error: {error_info}")
-            return False
+            logging.warning(f"Supabase upsert for lead '{lead_full_name}' completed but returned no data or error.")
+            return False # Or True depending on if no data is acceptable
 
     except Exception as e:
         logging.error(f"Error interacting with Supabase table '{table_name}': {e}")

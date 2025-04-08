@@ -65,15 +65,36 @@ class GenerateEmail(Node):
         # Removed the redundant try/except block and validation
     
     def post(self, shared, prep_res, exec_res):
-        """Store the generated email in shared."""
-        if not exec_res or not isinstance(exec_res, dict) or "subject" not in exec_res or "body" not in exec_res:
+        """Store the generated primary and follow-up email details in shared."""
+        if not exec_res or not isinstance(exec_res, dict) or "primary_subject" not in exec_res or "primary_line1" not in exec_res:
             logging.warning(f"Email generation produced no result or invalid format: {exec_res}")
             shared['email_subject'] = "Error: Email generation failed"
             shared['email_body'] = "The system could not generate an email with the provided information."
+            shared['followup_subject'] = ""
+            shared['followup_body'] = ""
         else:
-            # Store email parts separately
-            shared['email_subject'] = exec_res.get("subject", "")
-            shared['email_body'] = exec_res.get("body", "")
+            # Store primary email parts
+            shared['email_subject'] = exec_res.get("primary_subject", "")
+            # Combine lines for the body (handle potential missing lines gracefully)
+            body_lines = [
+                exec_res.get("primary_line0", f"Hi {shared.get('lead_first_name', 'there')},"), # Add default line 0 if missing
+                exec_res.get("primary_line1", ""),
+                exec_res.get("primary_line2", ""),
+                exec_res.get("primary_line3", "")
+            ]
+            shared['email_body'] = "\n\n".join(line for line in body_lines if line) # Join non-empty lines with double newline
+            
+            # Store follow-up email parts (optional, could be empty)
+            shared['followup_subject'] = exec_res.get("followup_subject", "")
+            followup_body_lines = [
+                exec_res.get("followup_line1", ""),
+                exec_res.get("followup_line2", ""),
+                exec_res.get("followup_line3", "")
+            ]
+            shared['followup_body'] = "\n\n".join(line for line in followup_body_lines if line)
+            
             logging.info(f"Generated email with subject: {shared['email_subject']}")
+            if shared['followup_subject']:
+                logging.info(f"Generated follow-up email with subject: {shared['followup_subject']}")
             
         return "default"  # Continue flow 

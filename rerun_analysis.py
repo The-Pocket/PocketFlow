@@ -5,13 +5,13 @@ import logging
 import os
 import json
 from pathlib import Path
+from typing import Optional
 
 # Import necessary generator functions (adjust paths if needed)
-from utils.generators import (
-    generate_website_analysis,
-    generate_linkedin_analysis,
-    generate_analysis_prompt # Assuming this generates the prompt for third-party analysis
-)
+from utils.generators.website_analysis import generate_website_analysis
+from utils.generators.linkedin_analysis import generate_linkedin_analysis
+from utils.generators.third_party_analysis import generate_analysis_prompt
+
 # We might need the AI call function if generators only return prompts
 from utils import ai
 
@@ -33,9 +33,9 @@ def load_cache(cache_file_path: Path) -> dict | None:
         logging.error(f"Failed to load cache file {cache_file_path}: {e}", exc_info=True)
         return None
 
-def rerun_website(shared_store: dict):
+def rerun_website(shared_store: dict, model: Optional[str] = None):
     """Re-runs website analysis using raw data from shared_store."""
-    logging.info("--- Re-running Website Analysis ---")
+    logging.info(f"--- Re-running Website Analysis (Model: {model or 'Default'}) ---")
     raw_content = shared_store.get('raw_website_content')
     company_name = shared_store.get('company_name', '')
     website_url = shared_store.get('company_website', '') # Original URL for context
@@ -51,11 +51,12 @@ def rerun_website(shared_store: dict):
         raw_content = raw_content[:max_content_length]
 
     try:
-        # Directly call the analysis function (assuming it handles the AI call)
+        # Pass the model argument to the generator
         new_report = generate_website_analysis(
             company_name=company_name,
             website_url=website_url,
-            website_content=raw_content # Pass the raw content
+            website_content=raw_content, # Pass the raw content
+            model=model # Pass the specified model
         )
         print("\n>>> New Website Analysis Report:")
         print(new_report)
@@ -63,9 +64,9 @@ def rerun_website(shared_store: dict):
     except Exception as e:
         logging.error(f"Error during website re-analysis: {e}", exc_info=True)
 
-def rerun_linkedin(shared_store: dict):
+def rerun_linkedin(shared_store: dict, model: Optional[str] = None):
     """Re-runs LinkedIn analysis using raw data from shared_store."""
-    logging.info("--- Re-running LinkedIn Analysis ---")
+    logging.info(f"--- Re-running LinkedIn Analysis (Model: {model or 'Default'}) ---")
     raw_content = shared_store.get('raw_linkedin_content')
     company_name = shared_store.get('company_name', '')
     lead_first_name = shared_store.get('lead_first_name', '')
@@ -83,12 +84,14 @@ def rerun_linkedin(shared_store: dict):
         raw_content = raw_content[:max_content_length]
 
     try:
+        # Pass the model argument to the generator
         new_report = generate_linkedin_analysis(
             lead_first_name=lead_first_name,
             lead_last_name=lead_last_name,
             company_name=company_name,
             linkedin_url=linkedin_url,
-            linkedin_content=raw_content # Pass raw content
+            linkedin_content=raw_content, # Pass raw content
+            model=model # Pass the specified model
         )
         print("\n>>> New LinkedIn Analysis Report:")
         print(new_report)
@@ -96,9 +99,9 @@ def rerun_linkedin(shared_store: dict):
     except Exception as e:
         logging.error(f"Error during LinkedIn re-analysis: {e}", exc_info=True)
 
-def rerun_third_party(shared_store: dict):
+def rerun_third_party(shared_store: dict, model: Optional[str] = None):
     """Re-runs Third-Party analysis using raw data from shared_store."""
-    logging.info("--- Re-running Third-Party Analysis ---")
+    logging.info(f"--- Re-running Third-Party Analysis (Model: {model or 'Default'}) ---")
     raw_results = shared_store.get('raw_third_party_search_results')
     company_name = shared_store.get('company_name', '')
     lead_first_name = shared_store.get('lead_first_name', '')
@@ -120,8 +123,12 @@ def rerun_third_party(shared_store: dict):
             sources=raw_results, # Pass raw search results
             current_date=current_date_today
         )
-        # Call the LLM
-        new_report = ai.call_llm(analysis_prompt)
+        # Pass the model argument to the direct call_llm
+        new_report = ai.call_llm(
+            prompt=analysis_prompt,
+            model=model # Pass the specified model
+            # Add other relevant parameters like temperature if needed
+        )
         print("\n>>> New Third-Party Analysis Report:")
         print(new_report)
         print("-" * 30)
@@ -145,8 +152,11 @@ def main():
         required=True,
         help="Which analysis section(s) to re-run."
     )
-    # Future: Add args for model, prompt version, etc.
-    # parser.add_argument("--model", default="gpt-4o", help="Specify AI model for re-analysis.")
+    parser.add_argument(
+        "--model",
+        default=None, # Default is None, letting utils.ai handle its default
+        help="Specify AI model identifier (e.g., 'gpt-4o-mini', 'groq/meta-llama/llama-4-scout-17b-16e-instruct')"
+    )
 
     args = parser.parse_args()
 
@@ -155,15 +165,17 @@ def main():
         return # Error handled in load_cache
 
     logging.info(f"Re-analyzing sections: {', '.join(args.reanalyze)}")
+    if args.model:
+        logging.info(f"Using specified model: {args.model}")
 
     if 'website' in args.reanalyze:
-        rerun_website(shared_store)
+        rerun_website(shared_store, model=args.model)
 
     if 'linkedin' in args.reanalyze:
-        rerun_linkedin(shared_store)
+        rerun_linkedin(shared_store, model=args.model)
 
     if 'third-party' in args.reanalyze:
-        rerun_third_party(shared_store)
+        rerun_third_party(shared_store, model=args.model)
 
     logging.info("Re-analysis script finished.")
 
