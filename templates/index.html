@@ -90,6 +90,22 @@
         <label for="product_service">What are you selling? (Your product/service):</label>
         <input type="text" id="product_service" name="product_service" placeholder="e.g., AI-powered CRM software" value="{{ lead_input.product_service if lead_input else '' }}">
 
+        <div style="margin-top: 1em; margin-bottom: 1em; padding: 0.5em; border: 1px solid #eee; border-radius: 4px;">
+            <p style="margin-top: 0; margin-bottom: 0.5em; font-weight: bold;">Analysis Options:</p>
+            <label for="enable_website_analysis" style="display: inline-block; margin-right: 1em; font-weight: normal;">
+                <input type="checkbox" id="enable_website_analysis" name="enable_website_analysis" value="true" {{ 'checked' if lead_input is none or lead_input.get('enable_website_analysis', True) }}>
+                Run Website Analysis
+            </label>
+            <label for="enable_linkedin_analysis" style="display: inline-block; margin-right: 1em; font-weight: normal;">
+                <input type="checkbox" id="enable_linkedin_analysis" name="enable_linkedin_analysis" value="true" {{ 'checked' if lead_input is none or lead_input.get('enable_linkedin_analysis', True) }}>
+                Run LinkedIn Analysis
+            </label>
+            <label for="enable_third_party_analysis" style="display: inline-block; font-weight: normal;">
+                <input type="checkbox" id="enable_third_party_analysis" name="enable_third_party_analysis" value="true" {{ 'checked' if lead_input is none or lead_input.get('enable_third_party_analysis', True) }}>
+                Run Third-Party Search
+            </label>
+        </div>
+
         <button type="submit">Generate Email</button>
     </form>
 

@@ -114,15 +114,25 @@ def process():
         "product_service": request.form.get('product_service', '').strip()
     }
     
+    # Read checkbox states (True if 'value' is present in form, False otherwise)
+    lead_input['enable_website_analysis'] = bool(request.form.get('enable_website_analysis'))
+    lead_input['enable_linkedin_analysis'] = bool(request.form.get('enable_linkedin_analysis'))
+    lead_input['enable_third_party_analysis'] = bool(request.form.get('enable_third_party_analysis'))
+    
     # Basic validation (can be more sophisticated)
     if not lead_input['lead_first_name'] and not lead_input['company_name']:
         flash("Please provide at least a Lead Name or Company Name.", "warning")
         return render_template('index.html', results=None, lead_input=lead_input)
-    if not lead_input['company_website'] and not lead_input['linkedin_url']:
-         flash("Please provide at least a Company Website or LinkedIn URL for analysis.", "warning")
+    # Update validation: Require either website/linkedin URL OR company name if analysis enabled
+    website_enabled = lead_input['enable_website_analysis']
+    linkedin_enabled = lead_input['enable_linkedin_analysis']
+    third_party_enabled = lead_input['enable_third_party_analysis']
+    
+    if (website_enabled or linkedin_enabled or third_party_enabled) and not (lead_input['company_website'] or lead_input['linkedin_url'] or lead_input['company_name']):
+         flash("Please provide a Company Website, LinkedIn URL, or Company Name if any analysis option is selected.", "warning")
          return render_template('index.html', results=None, lead_input=lead_input)
 
-    logging.info(f"Received lead data from form: {lead_input}")
+    logging.info(f"Received lead data from form (with analysis flags): {lead_input}")
     
     # Run the backend processing
     results = process_lead_with_flow(lead_input)
