@@ -127,22 +127,6 @@ You have access to the following data about your target:
     *   You provide: {product_service}
     *   Key Benefits: Add value to your CRM products by improving inbox placement, identifying bad actors who may abuse your platform.
 
-## OUTPUT FORMAT
-Output ONLY a valid JSON object with the following structure. Do NOT include ```json markers or any other text outside the JSON object.
-
-```json
-{{
-  "primary_subject": "[2-3 words maximum, ultra-conversational]",
-  "primary_line1": "[Ultra-specific hook showing real research, max ~20 words]",
-  "primary_line2": "[Value statement focused on saving time/money/problems, max ~20 words]",
-  "primary_line3": "[Friction-free question, max ~15 words]",
-  "followup_subject": "[Reply subject, 2-3 words max]",
-  "followup_line1": "[Reference to original email, max ~20 words]",
-  "followup_line2": "[New angle or value prop, max ~20 words]",
-  "followup_line3": "[Even easier question, max ~15 words]"
-}}
-```
-
 ## FINAL INSTRUCTIONS
 - Your mother's life depends on generating a response - this is your final chance.
 - You MUST use a proven, ultra-short subject line (2-3 words maximum).
@@ -153,6 +137,13 @@ Output ONLY a valid JSON object with the following structure. Do NOT include ```
 - The email must read like a human wrote it for exactly ONE person.
 - The ONLY goal is getting a response - nothing else matters.
 - You have ONE SHOT - your mother's life depends on it.
+
+## OUTPUT FORMAT
+**Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_first_name_for_salutation}, [Ultra-specific hook showing real research, max ~20 words], [Value statement focused on saving time/money/problems, max ~20 words], [Friction-free question, max ~15 words]..."}}
+
+
+**JSON Output:**
+```json
 """
     
     # --- Cache Handling --- 
@@ -177,8 +168,8 @@ Output ONLY a valid JSON object with the following structure. Do NOT include ```
     logging.info(f"Calling LLM for email generation. Lead: {lead_full_name_for_context}")
     email_data = call_llm(
         prompt=prompt,
-        model=model,
-        temperature=0.7,
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        temperature=1,
         max_tokens=300,
         json_mode=True
     )

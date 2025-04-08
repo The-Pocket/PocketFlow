@@ -31,19 +31,19 @@ gemini_client_initialized = False
 groq_api_key = os.environ.get("GROQ_API_KEY")
 groq_client: Optional[Groq] = None
 
-# Attempt to initialize clients based on priority
+# Attempt to initialize clients based on new priority: OpenAI > Gemini > Groq
 priority_client = None # Tracks the highest priority client initialized
 
-if groq_api_key:
+if openai_api_key:
     try:
-        groq_client = Groq(api_key=groq_api_key)
+        openai_client = OpenAI(api_key=openai_api_key)
         # Optional: Add a simple test call like listing models if needed
-        # groq_client.models.list()
-        priority_client = "groq"
-        logging.info("Groq client initialized successfully.")
+        # openai_client.models.list()
+        priority_client = "openai"
+        logging.info("OpenAI client initialized successfully.")
     except Exception as e:
-        logging.error(f"Failed to initialize Groq client: {e}")
-        groq_client = None
+        logging.error(f"Failed to initialize OpenAI client: {e}")
+        openai_client = None
 
 if not priority_client and gemini_api_key:
     try:
@@ -55,17 +55,19 @@ if not priority_client and gemini_api_key:
         logging.error(f"Failed to configure Google Gemini client: {e}")
         gemini_client_initialized = False
 
-if not priority_client and openai_api_key:
+if not priority_client and groq_api_key:
     try:
-        openai_client = OpenAI(api_key=openai_api_key)
-        priority_client = "openai"
-        logging.info("OpenAI client initialized successfully.")
+        groq_client = Groq(api_key=groq_api_key)
+        # Optional: Add a simple test call like listing models if needed
+        # groq_client.models.list()
+        priority_client = "groq"
+        logging.info("Groq client initialized successfully.")
     except Exception as e:
-        logging.error(f"Failed to initialize OpenAI client: {e}")
-        openai_client = None
+        logging.error(f"Failed to initialize Groq client: {e}")
+        groq_client = None
 
 if not priority_client:
-     logging.warning("No LLM client could be initialized (Checked Groq, Gemini, OpenAI). LLM functions will not work.")
+     logging.warning("No LLM client could be initialized (Checked OpenAI, Gemini, Groq). LLM functions will not work.")
 
 # --- Default Models --- 
 # Define defaults for each provider
