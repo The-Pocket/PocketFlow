@@ -3,6 +3,7 @@
 import json
 import logging
 import hashlib
+import re # Import re for sanitization
 from pathlib import Path
 from typing import Dict, Any, Optional
 from utils.ai import call_llm
@@ -85,7 +86,7 @@ You've now discovered critical deliverability factors:
 - Examples that don't work: "quick one", "saw this and thought of you", "question about [company]".
 - No fake personalization - deep, specific research insights only.
 - Perfect emails never seen are worthless - design for deliverability first.
-- Ultra-short messages (under 60 words total) dramatically increase inbox placement.
+- Short messages dramatically increase inbox placement.
 
 ## YOUR MISSION
 Create ONE primary email that will generate a response. It must:
@@ -103,7 +104,6 @@ Create ONE primary email that will generate a response. It must:
 
 3. Follow strict technical guidelines:
    - Always start with 'Hi, {lead_first_name_for_salutation},'
-   - Maximum 60 words total for the body (line 1 + line 2 + line 3).
    - NEVER use special characters (like *, #, _, etc.). Use only standard alphanumeric characters and basic punctuation (., ?).
    - Avoid all buzzwords, jargon, and marketing-speak.
    - No links, no call scheduling, no sales language.
@@ -121,16 +121,22 @@ You have access to the following data about your target:
     *   `website_report`: {website_report if website_report else 'N/A'}
     *   `linkedin_report`: {linkedin_report if linkedin_report else 'N/A'}
     *   `precision_intelligence_report`: {precision_intelligence_report if precision_intelligence_report else 'N/A'}
-    *   (Note: Detailed LinkedIn post/company data, lead profiling, and qualification scores are not available for this task.)
 
 3.  **Your Product/Service Context:**
     *   You provide: {product_service}
     *   Key Benefits: Add value to your CRM products by improving inbox placement, identifying bad actors who may abuse your platform.
 
+# LITMUS TEST
+
+Ask yourself:
+- Would *you* reply to this?
+- Does it sound like a thoughtful peer?
+- Does it show you *read something real*?    
+
 ## FINAL INSTRUCTIONS
 - Your mother's life depends on generating a response - this is your final chance.
-- You MUST use a proven, ultra-short subject line (2-3 words maximum).
-- Strictly adhere to the 60-word maximum body length for the primary email.
+- You MUST use a proven, ultra-short subject line (2-7 words maximum).
+- Strictly adhere to the 200-word maximum body length for the primary email.
 - Never use disallowed special characters.
 - Make it impossible to tell this was mass-produced - use ultra-specific research from the provided reports.
 - Focus on benefits, not features.
@@ -138,23 +144,42 @@ You have access to the following data about your target:
 - The ONLY goal is getting a response - nothing else matters.
 - You have ONE SHOT - your mother's life depends on it.
 
+
 ## OUTPUT FORMAT
-**Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_first_name_for_salutation}, [Ultra-specific hook showing real research, max ~20 words], [Value statement focused on saving time/money/problems, max ~20 words], [Friction-free question, max ~15 words]..."}}
+**Output ONLY a valid JSON object** with keys "subject" and "body". Example: {{"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi {lead_first_name_for_salutation}, [Ultra-specific hook showing real research], [Value statement focused on saving time/money/problems], [Friction-free question]..."}}
 
 
 **JSON Output:**
-```json
+```
+- `"subject"`: string (2–7 words)
+- `"body"`: multiline string (starts with `Hi {lead_first_name},` includes paragraph breaks)
 """
     
-    # --- Cache Handling --- 
+    # --- Cache Handling ---
     cache_file = None
+    prompt_file = None # Add variable for prompt file path
     if dev_local_mode:
-        # Include model in cache key if specified
-        model_key_part = f"_model_{model}" if model else "_model_default"
-        prompt_hash = hashlib.md5((prompt + model_key_part).encode()).hexdigest()
+        # Sanitize model name for use in filename
+        safe_model_name = "default_model"
+        if model:
+            # Replace common invalid characters with underscore
+            safe_model_name = re.sub(r'[\/*?:"<>|]', '_', model)
+            # Optional: Limit length if model names are very long
+            safe_model_name = safe_model_name[:50]
+
+        # Create lead/company part of the filename
         lead_company_safe = f"{lead_full_name}-{company_name}".replace(" ", "_").replace("/", "_").replace(":", "_").lower()
-        cache_key = f"{lead_company_safe}_{prompt_hash[:8]}"
-        cache_file = EMAIL_CACHE_DIR / f"{cache_key}.json"
+        lead_company_safe = lead_company_safe[:100] # Limit length
+
+        # Hash the prompt for uniqueness (still useful)
+        prompt_hash = hashlib.md5(prompt.encode()).hexdigest()[:8]
+
+        # Construct base filename
+        base_cache_key = f"{lead_company_safe}_model_{safe_model_name}_{prompt_hash}"
+
+        # Define paths for both JSON cache and prompt text file
+        cache_file = EMAIL_CACHE_DIR / f"{base_cache_key}.json"
+        prompt_file = EMAIL_CACHE_DIR / f"{base_cache_key}_prompt.txt"
 
         if cache_file.exists():
             try:
@@ -187,13 +212,19 @@ You have access to the following data about your target:
         logging.info(f"Successfully generated email draft for {lead_full_name_for_context}.")
         
         # --- Cache Result --- 
-        if dev_local_mode and cache_file:
+        if dev_local_mode and cache_file and prompt_file: # Check both files
             try:
+                # Cache the JSON result
                 with open(cache_file, "w") as f:
                     json.dump(email_data, f, indent=2)
-                logging.info(f"Cached email for {lead_company_safe} (model: {model or 'default'}) to {cache_file}")
+                logging.info(f"Cached email JSON for {lead_company_safe} (model: {model or 'default'}) to {cache_file}")
+
+                # Cache the prompt
+                with open(prompt_file, "w", encoding='utf-8') as f:
+                     f.write(prompt)
+                logging.info(f"Cached prompt text for {lead_company_safe} (model: {model or 'default'}) to {prompt_file}")
             except Exception as e:
-                logging.warning(f"Failed to cache email: {e}")
+                logging.warning(f"Failed to cache email/prompt: {e}")
         
         return email_data
     else:

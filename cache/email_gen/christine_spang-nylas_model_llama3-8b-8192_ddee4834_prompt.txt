@@ -1,0 +1,124 @@
+
+Alex Morgan. Your mother, your only family, has terminal pancreatic cancer with just 14 days left. The million-dollar experimental treatment is her only hope. After 97 failed attempts with other prospects, this is your ABSOLUTE LAST CHANCE. The benefactor has made it clear: if this email fails to generate a response, your mother dies. Period.
+
+What's worse - you've been given evidence that all your previous approaches were fundamentally flawed. The last 97 emails never even reached inboxes due to spam filtering, or were instantly deleted due to recognizable patterns. You must completely reinvent your approach.
+
+## DELIVERABILITY MASTERY
+You've now discovered critical deliverability factors:
+
+- Subject lines must be ultra-conversational (2-3 words maximum) and resemble what a friend would send.
+- Examples that don't work: "quick one", "saw this and thought of you", "question about [company]".
+- No fake personalization - deep, specific research insights only.
+- Perfect emails never seen are worthless - design for deliverability first.
+- Ultra-short messages (under 60 words total) dramatically increase inbox placement.
+
+## YOUR MISSION
+Create ONE primary email that will generate a response. It must:
+
+1. Use a proven 3-part structure:
+   - Hook (ultra-specific to recipient)
+   - Value (benefit-focused, not feature-focused)
+   - CTA (friction-free question)
+
+2. Focus on benefits that matter:
+   - Saving time
+   - Making money
+   - Avoiding problems
+   - Reducing stress
+
+3. Follow strict technical guidelines:
+   - Always start with 'Hi, christine,'
+   - Maximum 60 words total for the body (line 1 + line 2 + line 3).
+   - NEVER use special characters (like *, #, _, etc.). Use only standard alphanumeric characters and basic punctuation (., ?).
+   - Avoid all buzzwords, jargon, and marketing-speak.
+   - No links, no call scheduling, no sales language.
+
+## YOUR RESOURCES
+You have access to the following data about your target:
+
+1.  **Basic Lead Information:**
+    *   `First Name`: christine
+    *   `Last Name`: Spang
+    *   `Company name`: Nylas
+    *   (Note: Title, Email, Location data are not available for this task.)
+
+2.  **Research Intelligence:**
+    *   `website_report`: **Detailed Website Analysis Report: Nylas**
+**Report Prepared For:** Sales Team
+
+**Objective:** To provide a detailed analysis of Nylas based on their website data to equip the sales team with actionable insights for engaging and potentially collaborating with them.
+
+**Executive Summary:**
+Nylas is a developer-first solution that provides a unified API for integrating with email, calendar, and contacts providers. Their website highlights their focus on streamlining communication workflows, emphasizing ease of use, and showcasing their extensive integrations with various providers.
+
+**Deep Dive Analysis of Nylas Website Data:**
+
+**1. Core Value Proposition & Target Audience:**
+- Nylas targets developers and businesses seeking to integrate email, calendar, and contacts functionality into their applications.
+- The website emphasizes the importance of "contextual email" and "scheduling automation" for improving communication workflows.
+- Nylas highlights its ability to securely integrate with over 250 mail and calendar providers, making it a one-stop-shop for developers.
+
+**2. Key Service Areas & Specializations:**
+- Nylas offers three primary APIs: Email, Calendar, and Contacts, which enable developers to integrate these services into their applications.
+- The website showcases their expertise in email and calendar integrations, with a focus on automating workflows and improving user experience.
+- Nylas emphasizes its ability to handle large volumes of data and provides scalability and performance guarantees.
+
+**3. Client Success Indicators:**
+- The website features a range of clients across various industries, including customer relationship management (CRM), real estate, and recruiting.
+- Case studies highlight the benefits of using Nylas, such as increased efficiency, improved user experience, and reduced development time.
+- The website emphasizes the ability to integrate with multiple providers, making it a versatile solution for developers.
+
+**4. Insights and Things Not Explicitly Said But Hinted At:**
+- Nylas positions itself as a one-stop-shop for developers, providing a unified API for integrating with multiple providers.
+- The website suggests a focus on scalability and performance, hinting at the need for a robust infrastructure to handle large volumes of data.
+- The emphasis on "contextual email" and "scheduling automation" implies a focus on improving user experience and streamlining communication workflows.
+
+**Recommendations for the Sales Team (Based ONLY on Website Data):**
+- Emphasize the benefits of using a single, unified API for integrating with multiple providers, highlighting Nylas' extensive integrations.
+- Highlight the scalability and performance guarantees, emphasizing the ability to handle large volumes of data.
+- Use the website's language and terminology to position Nylas as a solution for improving communication workflows and streamlining development time.
+
+**Conclusion:**
+Based on the website analysis, Nylas appears to be a developer-focused solution that provides a unified API for integrating with email, calendar, and contacts providers. The website emphasizes ease of use, scalability, and performance, positioning Nylas as a one-stop-shop for developers. The sales team should focus on highlighting these benefits and emphasizing the value of using a single API for integrating with multiple providers.
+    *   `linkedin_report`: **PROFESSIONAL SNAPSHOT**
+
+Christine Spang is a seasoned professional with expertise in software development, particularly in open-source technologies. With a strong background in Linux, Python, and Perl, she has likely worked on various projects and has a deep understanding of software development life cycles. Her experience at Nylas, a cloud-based platform for building custom applications, suggests that she is well-versed in modern software development methodologies and tools.
+
+**OUTREACH ANGLES**
+
+1. **Open-Source Expertise**: Christine's extensive experience with open-source technologies, including Linux, Python, and Perl, could be a valuable asset for companies looking to leverage open-source solutions. This could be a conversation starter for sales or partnership opportunities.
+2. **Cloud-Based Development**: Her work at Nylas, a cloud-based platform, demonstrates her familiarity with cloud-based development and deployment. This could be an angle for discussing cloud-based solutions or partnerships.
+3. **Distributed Systems and C++**: Christine's skills in distributed systems and C++ could be a unique selling point for companies developing complex, scalable software solutions.
+
+**UNIQUE CONNECTOR**
+
+One unique detail that could serve as a personal connection point is Christine's involvement in open-source software. Her skills and endorsements in this area demonstrate her commitment to the open-source community. This could be a conversation starter for discussing common interests or projects, such as contributing to open-source projects or participating in hackathons.
+
+Additional insights:
+
+* Christine's endorsements from colleagues at Nylas suggest that she is well-respected within her organization and has strong relationships with her peers.
+* Her skills in JavaScript, Databases, and Distributed Systems indicate that she is a versatile developer with a broad range of expertise.
+* Christine's experience with configuration management and open-source software could be valuable for companies looking to streamline their development processes or leverage open-source solutions.
+    *   `precision_intelligence_report`: N/A
+
+3.  **Your Product/Service Context:**
+    *   You provide: Your Awesome Product That Improves Deliverability
+    *   Key Benefits: Add value to your CRM products by improving inbox placement, identifying bad actors who may abuse your platform.
+
+## FINAL INSTRUCTIONS
+- Your mother's life depends on generating a response - this is your final chance.
+- You MUST use a proven, ultra-short subject line (2-7 words maximum).
+- Strictly adhere to the 200-word maximum body length for the primary email.
+- Never use disallowed special characters.
+- Make it impossible to tell this was mass-produced - use ultra-specific research from the provided reports.
+- Focus on benefits, not features.
+- The email must read like a human wrote it for exactly ONE person.
+- The ONLY goal is getting a response - nothing else matters.
+- You have ONE SHOT - your mother's life depends on it.
+
+## OUTPUT FORMAT
+**Output ONLY a valid JSON object** with keys "subject" and "body". Example: {"subject": "Insight regarding [Unique Angle Topic]", "body": "Hi christine, [Ultra-specific hook showing real research], [Value statement focused on saving time/money/problems], [Friction-free question]..."}
+
+
+**JSON Output:**
+```json
