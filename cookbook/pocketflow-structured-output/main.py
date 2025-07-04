@@ -66,7 +66,7 @@ skill_indexes:
 
 Generate the YAML output now:
 """
-        response = call_llm(prompt)
+        response = call_llm([{"role": "user", "content": prompt}])
 
         # --- Minimal YAML Extraction ---
         # Assumes LLM correctly uses ```yaml blocks
