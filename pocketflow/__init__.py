@@ -1,7 +1,7 @@
 import asyncio, warnings, copy, time
 
 class BaseNode:
-    def __init__(self): self.params,self.successors={},{}
+    def __init__(self, node_id=None): self.params,self.successors,self.node_id={},{},node_id
     def set_params(self,params): self.params=params
     def next(self,node,action="default"):
         if action in self.successors: warnings.warn(f"Overwriting successor for action '{action}'")
@@ -24,7 +24,7 @@ class _ConditionalTransition:
     def __rshift__(self,tgt): return self.src.next(tgt,self.action)
 
 class Node(BaseNode):
-    def __init__(self,max_retries=1,wait=0): super().__init__(); self.max_retries,self.wait=max_retries,wait
+    def __init__(self,max_retries=1,wait=0,node_id=None): super().__init__(node_id=node_id); self.max_retries,self.wait=max_retries,wait
     def exec_fallback(self,prep_res,exc): raise exc
     def _exec(self,prep_res):
         for self.cur_retry in range(self.max_retries):
@@ -37,17 +37,48 @@ class BatchNode(Node):
     def _exec(self,items): return [super(BatchNode,self)._exec(i) for i in (items or [])]
 
 class Flow(BaseNode):
-    def __init__(self,start=None): super().__init__(); self.start_node=start
+    def __init__(self,start=None, node_id=None): super().__init__(node_id=node_id); self.start_node=start; self.nodes={}
+
     def start(self,start): self.start_node=start; return start
+
+    def _discover_nodes(self):
+        q, visited = ([self.start_node] if self.start_node else []), set()
+        while q:
+            curr = q.pop(0)
+            if curr in visited: continue
+            visited.add(curr)
+            if getattr(curr, 'node_id', None):
+                if curr.node_id in self.nodes: warnings.warn(f"Duplicate node_id '{curr.node_id}' found.")
+                self.nodes[curr.node_id] = curr
+            if isinstance(curr, Flow) and curr.start_node: q.append(curr.start_node)
+            q.extend([succ for succ in curr.successors.values() if succ])
+        return self
+
     def get_next_node(self,curr,action):
         nxt=curr.successors.get(action or "default")
         if not nxt and curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
         return nxt
-    def _orch(self,shared,params=None):
-        curr,p,last_action =copy.copy(self.start_node),(params or {**self.params}),None
+
+    def _orch(self,shared,params=None, resume_info=None):
+        curr, p, last_action = None, (params or {**self.params}), None
+        if resume_info:
+            if not self.nodes: self._discover_nodes()
+            resume_node = self.nodes.get(resume_info.get("node_id"))
+            if not resume_node: raise ValueError(f"Resume node_id '{resume_info.get('node_id')}' not found.")
+            curr = self.get_next_node(resume_node, resume_info.get("last_action"))
+        else:
+            curr=copy.copy(self.start_node)
+
         while curr: curr.set_params(p); last_action=curr._run(shared); curr=copy.copy(self.get_next_node(curr,last_action))
         return last_action
-    def _run(self,shared): p=self.prep(shared); o=self._orch(shared); return self.post(shared,p,o)
+
+    def _run(self,shared): p=self.prep(shared); o=self._orch(shared, resume_info=getattr(self,'_resume_info',None)); return self.post(shared,p,o)
+
+    def resume(self, shared, resume_info):
+        self._resume_info = resume_info
+        try: return self._run(shared)
+        finally: del self._resume_info
+
     def post(self,shared,prep_res,exec_res): return exec_res
 
 class BatchFlow(Flow):
@@ -80,11 +111,26 @@ class AsyncParallelBatchNode(AsyncNode,BatchNode):
     async def _exec(self,items): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i) for i in items))
 
 class AsyncFlow(Flow,AsyncNode):
-    async def _orch_async(self,shared,params=None):
-        curr,p,last_action =copy.copy(self.start_node),(params or {**self.params}),None
+    async def _orch_async(self,shared,params=None, resume_info=None):
+        curr,p,last_action = None,(params or {**self.params}),None
+        if resume_info:
+            if not self.nodes: self._discover_nodes()
+            resume_node = self.nodes.get(resume_info.get("node_id"))
+            if not resume_node: raise ValueError(f"Resume node_id '{resume_info.get('node_id')}' not found.")
+            curr = self.get_next_node(resume_node, resume_info.get("last_action"))
+        else:
+            curr = copy.copy(self.start_node)
+
         while curr: curr.set_params(p); last_action=await curr._run_async(shared) if isinstance(curr,AsyncNode) else curr._run(shared); curr=copy.copy(self.get_next_node(curr,last_action))
         return last_action
-    async def _run_async(self,shared): p=await self.prep_async(shared); o=await self._orch_async(shared); return await self.post_async(shared,p,o)
+        
+    async def _run_async(self,shared): p=await self.prep_async(shared); o=await self._orch_async(shared, resume_info=getattr(self,'_resume_info',None)); return await self.post_async(shared,p,o)
+
+    async def resume_async(self, shared, resume_info):
+        self._resume_info = resume_info
+        try: return await self._run_async(shared)
+        finally: del self._resume_info
+
     async def post_async(self,shared,prep_res,exec_res): return exec_res
 
 class AsyncBatchFlow(AsyncFlow,BatchFlow):
