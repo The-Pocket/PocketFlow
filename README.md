@@ -12,6 +12,10 @@ English | [中文](https://github.com/The-Pocket/PocketFlow/blob/main/cookbook/p
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
+**! Edit: This fork has type hints and docstrings added for a total of 722 lines !**
+
+*This forces naming shared, prep_res, exec_res, post_res* 
+
 Pocket Flow is a [100-line](https://github.com/The-Pocket/PocketFlow/blob/main/pocketflow/__init__.py) minimalist LLM framework
 
 - **Lightweight**: Just 100 lines. Zero bloat, zero dependencies, zero vendor lock-in.

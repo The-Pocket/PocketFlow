@@ -12,32 +12,32 @@ class AsyncArrayChunkNode(AsyncBatchNode):
         super().__init__()
         self.chunk_size = chunk_size
     
-    async def prep_async(self, shared_storage):
+    async def prep_async(self, shared):
         # Get array from shared storage and split into chunks
-        array = shared_storage.get('input_array', [])
+        array = shared.get('input_array', [])
         chunks = []
         for start in range(0, len(array), self.chunk_size):
             end = min(start + self.chunk_size, len(array))
             chunks.append(array[start:end])
         return chunks
     
-    async def exec_async(self, prep_result):
+    async def exec_async(self, prep_res):
         # Simulate async processing of each chunk
         await asyncio.sleep(0.01)
-        return sum(prep_result)
+        return sum(prep_res)
         
-    async def post_async(self, shared_storage, prep_result, exec_result):
+    async def post_async(self, shared, prep_res, exec_res):
         # Store chunk results in shared storage
-        shared_storage['chunk_results'] = exec_result
+        shared['chunk_results'] = exec_res
         return "processed"
 
 class AsyncSumReduceNode(AsyncNode):
-    async def prep_async(self, shared_storage):
+    async def prep_async(self, shared):
         # Get chunk results from shared storage
-        chunk_results = shared_storage.get('chunk_results', [])
+        chunk_results = shared.get('chunk_results', [])
         await asyncio.sleep(0.01)  # Simulate async processing
         total = sum(chunk_results)
-        shared_storage['total'] = total
+        shared['total'] = total
         return "reduced"
 
 class TestAsyncBatchNode(unittest.TestCase):
@@ -45,14 +45,14 @@ class TestAsyncBatchNode(unittest.TestCase):
         """
         Test that the array is correctly split into chunks and processed asynchronously
         """
-        shared_storage = {
+        shared = {
             'input_array': list(range(25))  # [0,1,2,...,24]
         }
         
         chunk_node = AsyncArrayChunkNode(chunk_size=10)
-        asyncio.run(chunk_node.run_async(shared_storage=shared_storage))
+        asyncio.run(chunk_node.run_async(shared=shared))
         
-        results = shared_storage['chunk_results']
+        results = shared['chunk_results']
         self.assertEqual(results, [45, 145, 110])  # Sum of chunks [0-9], [10-19], [20-24]
         
     # def test_async_map_reduce_sum(self):
@@ -64,7 +64,7 @@ class TestAsyncBatchNode(unittest.TestCase):
     #     array = list(range(100))
     #     expected_sum = sum(array)  # 4950
         
-    #     shared_storage = {
+    #     shared = {
     #         'input_array': array
     #     }
         
@@ -77,9 +77,9 @@ class TestAsyncBatchNode(unittest.TestCase):
         
     #     # Create and run pipeline
     #     pipeline = AsyncFlow(start=chunk_node)
-    #     asyncio.run(pipeline.run_async(shared_storage))
+    #     asyncio.run(pipeline.run_async(shared))
         
-    #     self.assertEqual(shared_storage['total'], expected_sum)
+    #     self.assertEqual(shared['total'], expected_sum)
         
     # def test_uneven_chunks(self):
     #     """
@@ -89,7 +89,7 @@ class TestAsyncBatchNode(unittest.TestCase):
     #     array = list(range(25))
     #     expected_sum = sum(array)  # 300
         
-    #     shared_storage = {
+    #     shared = {
     #         'input_array': array
     #     }
         
@@ -98,9 +98,9 @@ class TestAsyncBatchNode(unittest.TestCase):
         
     #     chunk_node - "processed" >> reduce_node
     #     pipeline = AsyncFlow(start=chunk_node)
-    #     asyncio.run(pipeline.run_async(shared_storage))
+    #     asyncio.run(pipeline.run_async(shared))
         
-    #     self.assertEqual(shared_storage['total'], expected_sum)
+    #     self.assertEqual(shared['total'], expected_sum)
 
     # def test_custom_chunk_size(self):
     #     """
@@ -109,7 +109,7 @@ class TestAsyncBatchNode(unittest.TestCase):
     #     array = list(range(100))
     #     expected_sum = sum(array)
         
-    #     shared_storage = {
+    #     shared = {
     #         'input_array': array
     #     }
         
@@ -119,9 +119,9 @@ class TestAsyncBatchNode(unittest.TestCase):
         
     #     chunk_node - "processed" >> reduce_node
     #     pipeline = AsyncFlow(start=chunk_node)
-    #     asyncio.run(pipeline.run_async(shared_storage))
+    #     asyncio.run(pipeline.run_async(shared))
         
-    #     self.assertEqual(shared_storage['total'], expected_sum)
+    #     self.assertEqual(shared['total'], expected_sum)
         
     # def test_single_element_chunks(self):
     #     """
@@ -130,7 +130,7 @@ class TestAsyncBatchNode(unittest.TestCase):
     #     array = list(range(5))
     #     expected_sum = sum(array)
         
-    #     shared_storage = {
+    #     shared = {
     #         'input_array': array
     #     }
         
@@ -139,15 +139,15 @@ class TestAsyncBatchNode(unittest.TestCase):
         
     #     chunk_node - "processed" >> reduce_node
     #     pipeline = AsyncFlow(start=chunk_node)
-    #     asyncio.run(pipeline.run_async(shared_storage))
+    #     asyncio.run(pipeline.run_async(shared))
         
-    #     self.assertEqual(shared_storage['total'], expected_sum)
+    #     self.assertEqual(shared['total'], expected_sum)
 
     # def test_empty_array(self):
     #     """
     #     Test edge case of empty input array
     #     """
-    #     shared_storage = {
+    #     shared = {
     #         'input_array': []
     #     }
         
@@ -156,9 +156,9 @@ class TestAsyncBatchNode(unittest.TestCase):
         
     #     chunk_node - "processed" >> reduce_node
     #     pipeline = AsyncFlow(start=chunk_node)
-    #     asyncio.run(pipeline.run_async(shared_storage))
+    #     asyncio.run(pipeline.run_async(shared))
         
-    #     self.assertEqual(shared_storage['total'], 0)
+    #     self.assertEqual(shared['total'], 0)
 
     # def test_error_handling(self):
     #     """
@@ -170,13 +170,13 @@ class TestAsyncBatchNode(unittest.TestCase):
     #                 raise ValueError("Error processing item 2")
     #             return item
 
-    #     shared_storage = {
+    #     shared = {
     #         'input_array': [1, 2, 3]
     #     }
         
     #     error_node = ErrorAsyncBatchNode()
     #     with self.assertRaises(ValueError):
-    #         asyncio.run(error_node.run_async(shared_storage))
+    #         asyncio.run(error_node.run_async(shared))
 
 if __name__ == '__main__':
     unittest.main()

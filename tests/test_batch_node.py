@@ -11,44 +11,44 @@ class ArrayChunkNode(BatchNode):
         super().__init__()
         self.chunk_size = chunk_size
     
-    def prep(self, shared_storage):
+    def prep(self, shared):
         # Get array from shared storage and split into chunks
-        array = shared_storage.get('input_array', [])
+        array = shared.get('input_array', [])
         chunks = []
         for start in range(0, len(array), self.chunk_size):
             end = min(start + self.chunk_size, len(array))
             chunks.append(array[start: end])
         return chunks
     
-    def exec(self, prep_result):
+    def exec(self, prep_res):
         # Process the chunk and return its sum
-        chunk_sum = sum(prep_result)
+        chunk_sum = sum(prep_res)
         return chunk_sum
         
-    def post(self, shared_storage, prep_result, exec_result):
+    def post(self, shared, prep_res, exec_res):
         # Store chunk results in shared storage
-        shared_storage['chunk_results'] = exec_result
+        shared['chunk_results'] = exec_res
         return "default"
 
 class SumReduceNode(Node):
-    def prep(self, shared_storage):
+    def prep(self, shared):
         # Get chunk results from shared storage and sum them
-        chunk_results = shared_storage.get('chunk_results', [])
+        chunk_results = shared.get('chunk_results', [])
         total = sum(chunk_results)
-        shared_storage['total'] = total
+        shared['total'] = total
 
 class TestBatchNode(unittest.TestCase):
     def test_array_chunking(self):
         """
         Test that the array is correctly split into chunks
         """
-        shared_storage = {
+        shared = {
             'input_array': list(range(25))  # [0,1,2,...,24]
         }
         
         chunk_node = ArrayChunkNode(chunk_size=10)
-        chunk_node.run(shared_storage)
-        results = shared_storage['chunk_results']
+        chunk_node.run(shared)
+        results = shared['chunk_results']
         self.assertEqual(results, [45, 145, 110])
         
     def test_map_reduce_sum(self):
@@ -61,7 +61,7 @@ class TestBatchNode(unittest.TestCase):
         array = list(range(100))
         expected_sum = sum(array)  # 4950
         
-        shared_storage = {
+        shared = {
             'input_array': array
         }
         
@@ -74,9 +74,9 @@ class TestBatchNode(unittest.TestCase):
         
         # Create and run pipeline
         pipeline = Flow(start=chunk_node)
-        pipeline.run(shared_storage)
+        pipeline.run(shared)
         
-        self.assertEqual(shared_storage['total'], expected_sum)
+        self.assertEqual(shared['total'], expected_sum)
         
     def test_uneven_chunks(self):
         """
@@ -86,7 +86,7 @@ class TestBatchNode(unittest.TestCase):
         array = list(range(25))
         expected_sum = sum(array)  # 300
         
-        shared_storage = {
+        shared = {
             'input_array': array
         }
         
@@ -95,9 +95,9 @@ class TestBatchNode(unittest.TestCase):
         
         chunk_node >> reduce_node
         pipeline = Flow(start=chunk_node)
-        pipeline.run(shared_storage)
+        pipeline.run(shared)
         
-        self.assertEqual(shared_storage['total'], expected_sum)
+        self.assertEqual(shared['total'], expected_sum)
 
     def test_custom_chunk_size(self):
         """
@@ -106,7 +106,7 @@ class TestBatchNode(unittest.TestCase):
         array = list(range(100))
         expected_sum = sum(array)
         
-        shared_storage = {
+        shared = {
             'input_array': array
         }
         
@@ -116,9 +116,9 @@ class TestBatchNode(unittest.TestCase):
         
         chunk_node >> reduce_node
         pipeline = Flow(start=chunk_node)
-        pipeline.run(shared_storage)
+        pipeline.run(shared)
         
-        self.assertEqual(shared_storage['total'], expected_sum)
+        self.assertEqual(shared['total'], expected_sum)
         
     def test_single_element_chunks(self):
         """
@@ -127,7 +127,7 @@ class TestBatchNode(unittest.TestCase):
         array = list(range(5))
         expected_sum = sum(array)
         
-        shared_storage = {
+        shared = {
             'input_array': array
         }
         
@@ -136,15 +136,15 @@ class TestBatchNode(unittest.TestCase):
         
         chunk_node >> reduce_node
         pipeline = Flow(start=chunk_node)
-        pipeline.run(shared_storage)
+        pipeline.run(shared)
         
-        self.assertEqual(shared_storage['total'], expected_sum)
+        self.assertEqual(shared['total'], expected_sum)
 
     def test_empty_array(self):
         """
         Test edge case of empty input array
         """
-        shared_storage = {
+        shared = {
             'input_array': []
         }
         
@@ -153,9 +153,9 @@ class TestBatchNode(unittest.TestCase):
         
         chunk_node >> reduce_node
         pipeline = Flow(start=chunk_node)
-        pipeline.run(shared_storage)
+        pipeline.run(shared)
         
-        self.assertEqual(shared_storage['total'], 0)
+        self.assertEqual(shared['total'], 0)
 
 if __name__ == '__main__':
     unittest.main()
