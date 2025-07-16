@@ -197,7 +197,7 @@ class TestFlowBasic(unittest.TestCase):
         shared_storage = {}
         # Node that returns a specific action from post
         class ActionNode(Node):
-            def post(self, *args): return "specific_action"
+            def post(self, *args, **kwargs): return "specific_action"
         start_node = ActionNode()
         next_node = NoOpNode()
 
