@@ -28,10 +28,10 @@ class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
 
 class AsyncAggregatorNode(AsyncNode):
     async def prep_async(self, shared_storage):
-        # Combine all batch results in order
         all_results = []
         processed = shared_storage.get('processed_numbers', {})
-        for i in range(len(processed)):
+        # To maintain the original order, sort by batch_id (the keys)
+        for i in sorted(processed.keys()):
             all_results.extend(processed[i])
         return all_results
     
