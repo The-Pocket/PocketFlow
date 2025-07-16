@@ -666,26 +666,26 @@ class AsyncBatchFlow(AsyncFlow, BatchFlow):
     """
 
 
-async def _run_async(self, shared: dict[str, Any]) -> Any:
-    """The async execution wrapper for the batch flow.
+    async def _run_async(self, shared: dict[str, Any]) -> Any:
+        """The async execution wrapper for the batch flow.
 
-    This method wraps the `_orch_async` method with `prep_async` and
-    `post_async` methods.
+        This method wraps the `_orch_async` method with `prep_async` and
+        `post_async` methods.
 
-    Args:
-        shared (dict[str, Any]): The shared storage of the flow.
+        Args:
+            shared (dict[str, Any]): The shared storage of the flow.
 
-    Returns:
-        Any: The result of the `post_async` method.
-    """
-    pr = await self.prep_async(shared=shared) or []
-    for bp in pr:
-        await self._orch_async(
-            shared=shared, params={**self.params, **bp}
+        Returns:
+            Any: The result of the `post_async` method.
+        """
+        pr = await self.prep_async(shared=shared) or []
+        for bp in pr:
+            await self._orch_async(
+                shared=shared, params={**self.params, **bp}
+            )
+        return await self.post_async(
+            shared=shared, prep_res=pr, exec_res=None
         )
-    return await self.post_async(
-        shared=shared, prep_res=pr, exec_res=None
-    )
 
 
 class AsyncParallelBatchFlow(AsyncFlow, BatchFlow):
