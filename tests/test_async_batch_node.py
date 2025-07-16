@@ -1,10 +1,11 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncNode, AsyncBatchNode, AsyncFlow
+from pocketflow import AsyncBatchNode, AsyncNode
+
 
 class AsyncArrayChunkNode(AsyncBatchNode):
     def __init__(self, chunk_size=10):
@@ -20,14 +21,14 @@ class AsyncArrayChunkNode(AsyncBatchNode):
             chunks.append(array[start:end])
         return chunks
     
-    async def exec_async(self, chunk):
+    async def exec_async(self, prep_result):
         # Simulate async processing of each chunk
         await asyncio.sleep(0.01)
-        return sum(chunk)
+        return sum(prep_result)
         
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared_storage, prep_result, exec_result):
         # Store chunk results in shared storage
-        shared_storage['chunk_results'] = proc_result
+        shared_storage['chunk_results'] = exec_result
         return "processed"
 
 class AsyncSumReduceNode(AsyncNode):
@@ -49,7 +50,7 @@ class TestAsyncBatchNode(unittest.TestCase):
         }
         
         chunk_node = AsyncArrayChunkNode(chunk_size=10)
-        asyncio.run(chunk_node.run_async(shared_storage))
+        asyncio.run(chunk_node.run_async(shared_storage=shared_storage))
         
         results = shared_storage['chunk_results']
         self.assertEqual(results, [45, 145, 110])  # Sum of chunks [0-9], [10-19], [20-24]

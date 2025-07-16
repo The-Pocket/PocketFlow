@@ -1,10 +1,11 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncNode, AsyncBatchFlow
+from pocketflow import AsyncBatchFlow, AsyncNode
+
 
 class AsyncDataProcessNode(AsyncNode):
     async def prep_async(self, shared_storage):
@@ -15,14 +16,14 @@ class AsyncDataProcessNode(AsyncNode):
         shared_storage['results'][key] = data
         return data
 
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared_storage, prep_result, exec_result):
         await asyncio.sleep(0.01)  # Simulate async work
         key = self.params.get('key')
         shared_storage['results'][key] = prep_result * 2  # Double the value
         return "processed"
 
 class AsyncErrorNode(AsyncNode):
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared_storage, prep_result, exec_result):
         key = self.params.get('key')
         if key == 'error_key':
             raise ValueError(f"Async error processing key: {key}")
@@ -93,7 +94,7 @@ class TestAsyncBatchFlow(unittest.TestCase):
     def test_nested_async_flow(self):
         """Test async batch processing with nested flows"""
         class AsyncInnerNode(AsyncNode):
-            async def post_async(self, shared_storage, prep_result, proc_result):
+            async def post_async(self, shared_storage, prep_result, exec_result):
                 key = self.params.get('key')
                 if 'intermediate_results' not in shared_storage:
                     shared_storage['intermediate_results'] = {}
@@ -102,7 +103,7 @@ class TestAsyncBatchFlow(unittest.TestCase):
                 return "next"
 
         class AsyncOuterNode(AsyncNode):
-            async def post_async(self, shared_storage, prep_result, proc_result):
+            async def post_async(self, shared_storage, prep_result, exec_result):
                 key = self.params.get('key')
                 if 'results' not in shared_storage:
                     shared_storage['results'] = {}
@@ -138,7 +139,7 @@ class TestAsyncBatchFlow(unittest.TestCase):
     def test_custom_async_parameters(self):
         """Test async batch processing with additional custom parameters"""
         class CustomParamAsyncNode(AsyncNode):
-            async def post_async(self, shared_storage, prep_result, proc_result):
+            async def post_async(self, shared_storage, prep_result, exec_result):
                 key = self.params.get('key')
                 multiplier = self.params.get('multiplier', 1)
                 await asyncio.sleep(0.01)

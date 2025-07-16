@@ -1,10 +1,11 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncNode, AsyncParallelBatchNode, AsyncParallelBatchFlow
+from pocketflow import AsyncNode, AsyncParallelBatchFlow, AsyncParallelBatchNode
+
 
 class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
     def __init__(self, delay=0.1):
@@ -15,9 +16,9 @@ class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
         batch = shared_storage['batches'][self.params['batch_id']]
         return batch
     
-    async def exec_async(self, number):
+    async def exec_async(self, prep_result):
         await asyncio.sleep(self.delay)  # Simulate async processing
-        return number * 2
+        return prep_result * 2
         
     async def post_async(self, shared_storage, prep_result, exec_result):
         if 'processed_numbers' not in shared_storage:
@@ -96,10 +97,10 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         Test error handling in parallel batch flow
         """
         class ErrorProcessor(AsyncParallelNumberProcessor):
-            async def exec_async(self, item):
-                if item == 2:
-                    raise ValueError(f"Error processing item {item}")
-                return item
+            async def exec_async(self, prep_result):
+                if prep_result == 2:
+                    raise ValueError(f"Error processing item {prep_result}")
+                return prep_result
 
         class ErrorBatchFlow(AsyncParallelBatchFlow):
             async def prep_async(self, shared_storage):

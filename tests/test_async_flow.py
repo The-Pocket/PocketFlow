@@ -1,10 +1,11 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import Node, AsyncNode, AsyncFlow
+from pocketflow import AsyncFlow, AsyncNode, Node
+
 
 class AsyncNumberNode(AsyncNode):
     """
@@ -22,7 +23,7 @@ class AsyncNumberNode(AsyncNode):
         shared_storage['current'] = self.number
         return "set_number"
 
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared_storage, prep_result, exec_result):
         # Possibly do asynchronous tasks here
         await asyncio.sleep(0.01)
         # Return a condition for the flow
@@ -36,7 +37,7 @@ class AsyncIncrementNode(AsyncNode):
         shared_storage['current'] = shared_storage.get('current', 0) + 1
         return "incremented"
 
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared_storage, prep_result, exec_result):
         await asyncio.sleep(0.01)  # simulate async I/O
         return "done"
 
@@ -139,13 +140,13 @@ class TestAsyncFlow(unittest.TestCase):
         """
 
         class BranchingAsyncNode(AsyncNode):
-            def exec(self, data):
+            def exec(self, prep_result):
                 value = shared_storage.get("value", 0)
                 shared_storage["value"] = value
                 # We'll decide branch based on whether 'value' is positive
                 return None
 
-            async def post_async(self, shared_storage, prep_result, proc_result):
+            async def post_async(self, shared_storage, prep_result, exec_result):
                 await asyncio.sleep(0.01)
                 if shared_storage["value"] >= 0:
                     return "positive_branch"
@@ -153,12 +154,12 @@ class TestAsyncFlow(unittest.TestCase):
                     return "negative_branch"
 
         class PositiveNode(Node):
-            def exec(self, data):
+            def exec(self, prep_result):
                 shared_storage["path"] = "positive"
                 return None
 
         class NegativeNode(Node):
-            def exec(self, data):
+            def exec(self, prep_result):
                 shared_storage["path"] = "negative"
                 return None
 

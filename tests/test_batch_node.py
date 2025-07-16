@@ -1,9 +1,10 @@
-import unittest
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import Node, BatchNode, Flow
+from pocketflow import BatchNode, Flow, Node
+
 
 class ArrayChunkNode(BatchNode):
     def __init__(self, chunk_size=10):
@@ -19,14 +20,14 @@ class ArrayChunkNode(BatchNode):
             chunks.append(array[start: end])
         return chunks
     
-    def exec(self, chunk):
+    def exec(self, prep_result):
         # Process the chunk and return its sum
-        chunk_sum = sum(chunk)
+        chunk_sum = sum(prep_result)
         return chunk_sum
         
-    def post(self, shared_storage, prep_result, proc_result):
+    def post(self, shared_storage, prep_result, exec_result):
         # Store chunk results in shared storage
-        shared_storage['chunk_results'] = proc_result
+        shared_storage['chunk_results'] = exec_result
         return "default"
 
 class SumReduceNode(Node):

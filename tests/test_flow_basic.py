@@ -1,11 +1,11 @@
 # tests/test_flow_basic.py
-import unittest
 import sys
-from pathlib import Path
+import unittest
 import warnings
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import Node, Flow
+from pocketflow import Flow, Node
 
 # --- Node Definitions ---
 # Nodes intended for default transitions (>>) should NOT return a specific
@@ -40,7 +40,7 @@ class CheckPositiveNode(Node):
    # This node IS designed for conditional branching
    def prep(self, shared_storage):
        pass
-   def post(self, shared_storage, prep_result, proc_result):
+   def post(self, shared_storage, prep_result, exec_result):
         # MUST return the specific action string for branching
         if shared_storage['current'] >= 0:
             return 'positive'
@@ -68,7 +68,7 @@ class TestFlowBasic(unittest.TestCase):
         n1 = NumberNode(5)
         pipeline = Flow()
         pipeline.start(n1)
-        last_action = pipeline.run(shared_storage)
+        last_action = pipeline.run(shared_storage=shared_storage)
         self.assertEqual(shared_storage['current'], 5)
         # NumberNode.post returns None (default)
         self.assertIsNone(last_action)
@@ -80,7 +80,7 @@ class TestFlowBasic(unittest.TestCase):
         # Chain: NumberNode -> AddNode -> MultiplyNode
         # All use default transitions (post returns None)
         pipeline.start(NumberNode(5)).next(AddNode(3)).next(MultiplyNode(2))
-        last_action = pipeline.run(shared_storage)
+        last_action = pipeline.run(shared_storage=shared_storage)
         self.assertEqual(shared_storage['current'], 16)
         # Last node (MultiplyNode) post returns None
         self.assertIsNone(last_action)
@@ -157,7 +157,7 @@ class TestFlowBasic(unittest.TestCase):
         subtract3 >> check
 
         # Execution: n1->check->sub3->check->sub3->check->sub3->check->sub3->check->end_node
-        last_action = pipeline.run(shared_storage)
+        last_action = pipeline.run(shared_storage=shared_storage)
         self.assertEqual(shared_storage['current'], -2) # 10 -> 7 -> 4 -> 1 -> -2
         # Last node executed was end_node, its post returns "cycle_done"
         self.assertEqual(last_action, "cycle_done")
@@ -167,7 +167,7 @@ class TestFlowBasic(unittest.TestCase):
         shared_storage = {}
         # Node that returns a specific action from post
         class ActionNode(Node):
-            def post(self, *args): return "specific_action"
+            def post(self, shared_storage, prep_result, exec_result): return "specific_action"
         start_node = ActionNode()
         next_node = NoOpNode()
 
@@ -177,13 +177,13 @@ class TestFlowBasic(unittest.TestCase):
         start_node - "specific_action" >> next_node
 
         # Make start_node return None instead, triggering default search
-        start_node.post = lambda *args: None
+        start_node.post = lambda shared_storage, prep_result, exec_result: None
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             # Run flow. start_node runs, post returns None.
             # Flow looks for "default", but only "specific_action" exists.
-            last_action = pipeline.run(shared_storage)
+            last_action = pipeline.run(shared_storage=shared_storage)
 
             self.assertEqual(len(w), 1)
             self.assertTrue(issubclass(w[-1].category, UserWarning))
