@@ -186,6 +186,24 @@ class Node(BaseNode):
     - A single entry point and a single exit point.
     - The ability to be retried on failure.
     - A fallback mechanism for when all retries are exhausted.
+
+    Example:
+
+    .. code-block:: python
+        
+        class MyNode(Node):
+            def prep(self, shared: dict[str, Any]) -> Any:
+                # Prepare some data, often by looking at the shared storage
+                return {"data": shared.get("input", "default")}
+            def exec(self, prep_res: Any) -> Any:
+                # Execute some logic
+                return prep_res["data"].upper()
+            def post(self, shared: dict[str, Any], prep_res: Any, exec_res: Any) -> Any:
+                # Post-process the result
+                shared["result"] = exec_res
+                return "action_name"  # This will determine the next node in the flow
+                # returning None is the same as returning "default"
+    
     """
 
     def __init__(self, max_retries: int = 1, wait: int = 0) -> None:
@@ -241,8 +259,9 @@ class Node(BaseNode):
 class BatchNode(Node):
     """A `BatchNode` object is a `Node` that processes a batch of items.
 
-    It is a `Node` that takes a list of items as input and returns a list of
-    results.
+    The prep method should return a list of items to be processed
+    The exec method should process a single item and return a single result
+    The post method receives the list of results amd can return an action
     """
 
     def _exec(self, prep_res: list[Any] | None) -> list[Any]:
@@ -267,6 +286,26 @@ class Flow(BaseNode):
 
     It is a state machine that transitions between nodes based on the `action`
     returned by each node's `post` method.
+
+    Example:
+
+    .. code-block:: python
+        
+        # Create a flow
+        node1 = MyNode1()
+        node2 = MyNode2()
+        node1 >> node2  # Connects node1 to node2 with the default action
+        flow = Flow(start=node1)
+        ## the result of the last post method
+
+        # prepare input data
+        shared={"input": "hello"}
+
+        # run the flow and get the result of the flow's post method
+        # which is normally the result of the last node's post method
+        result = flow.run(shared=shared)
+        ## or examine an updated shared storage
+        print(shared)
     """
 
     def __init__(self, start: BaseNode | None = None) -> None:
@@ -366,7 +405,7 @@ class Flow(BaseNode):
             exec_res (Any): The result of the `_orch` method.
 
         Returns:
-            Any: The result of the `_orch` method.
+            Any: The result of the last node's `post` method.
         """
         return exec_res
 
@@ -375,7 +414,27 @@ class BatchFlow(Flow):
     """A `BatchFlow` object is a `Flow` that runs in batch mode.
 
     It is a `Flow` that runs the same orchestration logic for a list of
-    different inputs.
+    different inputs using params
+
+    Example:
+
+    .. code-block:: python
+        
+        class MyBatchFlow(BatchFlow):
+            def prep(self, shared: dict[str, Any]) -> list[dict[str, Any]]:
+                # Prepare a list of inputs to process, possibly by looking at the shared storage
+                # must return a list of dicts
+                # each dict will be passed to the nodes in the flow as params
+                return [{'key1': 'data'}, {'key1': 'data2'}])
+            
+            # the nodes within the flow will operate on each item in the list
+            # by each looking at self.params
+            # and update the shared storage with the results
+
+            def post(self, shared: dict[str, Any], prep_res: list[dict[str, Any]], exec_res: None) -> Any:
+                # Examine shared storage to see the results of the nodes
+                return shared["results"]
+
     """
 
     def _run(self, shared: dict[str, Any]) -> Any:
@@ -401,6 +460,23 @@ class AsyncNode(Node):
     """An `AsyncNode` object is a `Node` that runs asynchronously.
 
     It is a `Node` that can be used in an `AsyncFlow`.
+
+    Example:
+
+    .. code-block:: python
+        
+        class MyNode(AsyncNode):
+            def prep_async(self, shared: dict[str, Any]) -> Any:
+                # Prepare some data, often by looking at the shared storage
+                return {"data": shared.get("input", "default")}
+            def exec_async(self, prep_res: Any) -> Any:
+                # Execute some logic
+                return prep_res["data"].upper()
+            def post_async(self, shared: dict[str, Any], prep_res: Any, exec_res: Any) -> Any:
+                # Post-process the result
+                shared["result"] = exec_res
+                return "action_name"  # This will determine the next node in the flow
+                # returning None is the same as returning "default"
     """
 
     async def prep_async(self, shared: dict[str, Any]) -> Any:
@@ -457,7 +533,8 @@ class AsyncNode(Node):
             exec_res (Any): The result of the `exec_async` method.
 
         Returns:
-            Any: The result of the post-processing logic.
+            Any: The result of the post-processing logic or an 'action'
+            returning None is the same as returning "default"
         """
         pass
 
@@ -531,8 +608,9 @@ class AsyncBatchNode(AsyncNode, BatchNode):
     """An `AsyncBatchNode` object is a `Node` that processes a batch of items
     asynchronously.
 
-    It is a `Node` that takes a list of items as input and returns a list of
-    results.
+    The prep_async method should return a list of items to be processed
+    The exec_async method should process a single item and return a single result
+    The post_async method receives the list of results.
     """
 
     async def _exec(self, prep_res: list[Any] | None) -> list[Any]:  # type: ignore[override]
@@ -557,8 +635,9 @@ class AsyncParallelBatchNode(AsyncNode, BatchNode):
     """An `AsyncParallelBatchNode` object is a `Node` that processes a batch of
     items asynchronously and in parallel.
 
-    It is a `Node` that takes a list of items as input and returns a list of
-    results.
+    The prep_async method should return a list of items to be processed
+    The exec_async method should process each item in the list
+    The post_async method receivses the list of results.
     """
 
     async def _exec(self, prep_res: list[Any] | None) -> list[Any]:  # type: ignore[override]
@@ -581,13 +660,22 @@ class AsyncParallelBatchNode(AsyncNode, BatchNode):
         )
 
 
-# CoroutuneType[Any, Any, list[Any] | None]
-
-
 class AsyncFlow(Flow, AsyncNode):
     """An `AsyncFlow` object is a `Flow` that runs asynchronously.
 
     It is a `Flow` that can contain both `Node` and `AsyncNode` objects.
+
+    Example:
+
+    .. code-block:: python
+        
+        shared = {}
+        flow = AsyncFlow(start=AsyncNode())
+        ## the result of the last post_async method
+        result = await flow.run_async(shared=shared)
+        ## or examine an updated shared storage
+        print(shared)
+
     """
 
     async def _orch_async(
@@ -652,7 +740,7 @@ class AsyncFlow(Flow, AsyncNode):
             exec_res (Any): The result of the `_orch_async` method.
 
         Returns:
-            Any: The result of the `_orch_async` method.
+            Any: Often the result of the last node's `post_async` method
         """
         return exec_res
 
