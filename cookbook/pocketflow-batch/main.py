@@ -1,7 +1,9 @@
 import os
 import time
+
 from pocketflow import BatchNode, Flow
 from utils import call_llm
+
 
 class TranslateTextNode(BatchNode):
     def prep(self, shared):
@@ -12,8 +14,8 @@ class TranslateTextNode(BatchNode):
         # Create batches for each language translation
         return [(text, lang) for lang in languages]
 
-    def exec(self, data_tuple):
-        text, language = data_tuple
+    def exec(self, prep_res):
+        text, language = prep_res
         
         prompt = f"""
 Please translate the following markdown file into {language}. 
@@ -29,13 +31,13 @@ Translated:"""
         print(f"Translated {language} text")
         return {"language": language, "translation": result}
 
-    def post(self, shared, prep_res, exec_res_list):
+    def post(self, shared, prep_res, exec_res):
         # Create output directory if it doesn't exist
         output_dir = shared.get("output_dir", "translations")
         os.makedirs(output_dir, exist_ok=True)
         
         # Write each translation to a file
-        for result in exec_res_list:
+        for result in exec_res:
             language, translation = result["language"], result["translation"]
             
             # Write to file

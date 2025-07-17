@@ -167,7 +167,7 @@ my_project/
   from utils.call_llm import call_llm
 
   class GetQuestionNode(Node):
-      def exec(self, _):
+      def exec(self, prep_res):
           # Get question directly from user input
           user_question = input("Enter your question: ")
           return user_question
@@ -182,9 +182,9 @@ my_project/
           # Read question from shared
           return shared["question"]
       
-      def exec(self, question):
+      def exec(self, prep_res):
           # Call LLM to get the answer
-          return call_llm(question)
+          return call_llm(prep_res)
       
       def post(self, shared, prep_res, exec_res):
           # Store the answer in shared
@@ -398,13 +398,13 @@ class MapSummaries(BatchNode):
         chunks = [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
         return chunks
 
-    def exec(self, chunk):
-        prompt = f"Summarize this chunk in 10 words: {chunk}"
+    def exec(self, prep_res):
+        prompt = f"Summarize this chunk in 10 words: {prep_res}"
         summary = call_llm(prompt)
         return summary
 
-    def post(self, shared, prep_res, exec_res_list):
-        combined = "\n".join(exec_res_list)
+    def post(self, shared, prep_res, exec_res):
+        combined = "\n".join(exec_res)
         shared["summary"] = combined
         return "default"
 
@@ -1039,8 +1039,8 @@ class DecideAction(Node):
         query = shared["query"]
         return query, context
         
-    def exec(self, inputs):
-        query, context = inputs
+    def exec(self, prep_res):
+        query, context = prep_res
         prompt = f"""
 Given input: {query}
 Previous search results: {context}
@@ -1073,8 +1073,8 @@ class SearchWeb(Node):
     def prep(self, shared):
         return shared["search_term"]
         
-    def exec(self, search_term):
-        return search_web(search_term)
+    def exec(self, prep_res):
+        return search_web(prep_res)
     
     def post(self, shared, prep_res, exec_res):
         prev_searches = shared.get("context", [])
@@ -1087,8 +1087,8 @@ class DirectAnswer(Node):
     def prep(self, shared):
         return shared["query"], shared.get("context", "")
         
-    def exec(self, inputs):
-        query, context = inputs
+    def exec(self, prep_res):
+        query, context = prep_res
         return call_llm(f"Context: {context}\nAnswer: {query}")
 
     def post(self, shared, prep_res, exec_res):
@@ -1140,8 +1140,8 @@ class SummarizeAllFiles(BatchNode):
         files_dict = shared["files"]  # e.g. 10 files
         return list(files_dict.items())  # [("file1.txt", "aaa..."), ("file2.txt", "bbb..."), ...]
 
-    def exec(self, one_file):
-        filename, file_content = one_file
+    def exec(self, prep_res):
+        filename, file_content = prep_res
         summary_text = call_llm(f"Summarize the following file:\n{file_content}")
         return (filename, summary_text)
 
@@ -1152,17 +1152,17 @@ class CombineSummaries(Node):
     def prep(self, shared):
         return shared["file_summaries"]
 
-    def exec(self, file_summaries):
+    def exec(self, prep_res):
         # format as: "File1: summary\nFile2: summary...\n"
         text_list = []
-        for fname, summ in file_summaries.items():
+        for fname, summ in prep_res.items():
             text_list.append(f"{fname} summary:\n{summ}\n")
         big_text = "\n---\n".join(text_list)
 
         return call_llm(f"Combine these file summaries into one final summary:\n{big_text}")
 
-    def post(self, shared, prep_res, final_summary):
-        shared["all_files_summary"] = final_summary
+    def post(self, shared, prep_res, exec_res):
+        shared["all_files_summary"] = exec_res
 
 batch_node = SummarizeAllFiles()
 combine_node = CombineSummaries()
@@ -1217,9 +1217,9 @@ class ChunkDocs(BatchNode):
         # A list of file paths in shared["files"]. We process each file.
         return shared["files"]
 
-    def exec(self, filepath):
+    def exec(self, prep_res):
         # read file content. In real usage, do error handling.
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(prep_res, "r", encoding="utf-8") as f:
             text = f.read()
         # chunk by 100 chars each
         chunks = []
@@ -1240,8 +1240,8 @@ class EmbedDocs(BatchNode):
     def prep(self, shared):
         return shared["all_chunks"]
 
-    def exec(self, chunk):
-        return get_embedding(chunk)
+    def exec(self, prep_res):
+        return get_embedding(prep_res)
 
     def post(self, shared, prep_res, exec_res_list):
         # Store the list of embeddings.
@@ -1253,13 +1253,13 @@ class StoreIndex(Node):
         # We'll read all embeds from shared.
         return shared["all_embeds"]
 
-    def exec(self, all_embeds):
+    def exec(self, prep_res):
         # Create a vector index (faiss or other DB in real usage).
-        index = create_index(all_embeds)
+        index = create_index(prep_res)
         return index
 
-    def post(self, shared, prep_res, index):
-        shared["index"] = index
+    def post(self, shared, prep_res, exec_res):
+        shared["index"] = exec_res
 
 # Wire them in sequence
 chunk_node = ChunkDocs()
@@ -1293,40 +1293,40 @@ class EmbedQuery(Node):
     def prep(self, shared):
         return shared["question"]
 
-    def exec(self, question):
-        return get_embedding(question)
+    def exec(self, prep_res):
+        return get_embedding(prep_res)
 
-    def post(self, shared, prep_res, q_emb):
-        shared["q_emb"] = q_emb
+    def post(self, shared, prep_res, exec_res):
+        shared["q_emb"] = exec_res
 
 class RetrieveDocs(Node):
     def prep(self, shared):
         # We'll need the query embedding, plus the offline index/chunks
         return shared["q_emb"], shared["index"], shared["all_chunks"]
 
-    def exec(self, inputs):
-        q_emb, index, chunks = inputs
+    def exec(self, prep_res):
+        q_emb, index, chunks = prep_res
         I, D = search_index(index, q_emb, top_k=1)
         best_id = I[0][0]
         relevant_chunk = chunks[best_id]
         return relevant_chunk
 
-    def post(self, shared, prep_res, relevant_chunk):
-        shared["retrieved_chunk"] = relevant_chunk
-        print("Retrieved chunk:", relevant_chunk[:60], "...")
+    def post(self, shared, prep_res, exec_res):
+        shared["retrieved_chunk"] = exec_res
+        print("Retrieved chunk:", exec_res[:60], "...")
 
 class GenerateAnswer(Node):
     def prep(self, shared):
         return shared["question"], shared["retrieved_chunk"]
 
-    def exec(self, inputs):
-        question, chunk = inputs
+    def exec(self, prep_res):
+        question, chunk = prep_res
         prompt = f"Question: {question}\nContext: {chunk}\nAnswer:"
         return call_llm(prompt)
 
-    def post(self, shared, prep_res, answer):
-        shared["answer"] = answer
-        print("Answer:", answer)
+    def post(self, shared, prep_res, exec_res):
+        shared["answer"] = exec_res
+        print("Answer:", exec_res)
 
 embed_qnode = EmbedQuery()
 retrieve_node = RetrieveDocs()
@@ -1494,17 +1494,17 @@ Many real-world tasks are too complex for one LLM call. The solution is to **Tas
 ```python
 class GenerateOutline(Node):
     def prep(self, shared): return shared["topic"]
-    def exec(self, topic): return call_llm(f"Create a detailed outline for an article about {topic}")
+    def exec(self, prep_res): return call_llm(f"Create a detailed outline for an article about {prep_res}")
     def post(self, shared, prep_res, exec_res): shared["outline"] = exec_res
 
 class WriteSection(Node):
     def prep(self, shared): return shared["outline"]
-    def exec(self, outline): return call_llm(f"Write content based on this outline: {outline}")
+    def exec(self, prep_res): return call_llm(f"Write content based on this outline: {prep_res}")
     def post(self, shared, prep_res, exec_res): shared["draft"] = exec_res
 
 class ReviewAndRefine(Node):
     def prep(self, shared): return shared["draft"]
-    def exec(self, draft): return call_llm(f"Review and improve this draft: {draft}")
+    def exec(self, prep_res): return call_llm(f"Review and improve this draft: {prep_res}")
     def post(self, shared, prep_res, exec_res): shared["final_article"] = exec_res
 
 # Connect nodes
@@ -1653,8 +1653,8 @@ def call_llm(prompt, use_cache):
     return cached_call.__wrapped__(prompt)
 
 class SummarizeNode(Node):
-    def exec(self, text):
-        return call_llm(f"Summarize: {text}", self.cur_retry==0)
+    def exec(self, prep_res):
+        return call_llm(f"Summarize: {prep_res}", self.cur_retry==0)
 ```
 
 - Enable logging:

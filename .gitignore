@@ -15,6 +15,7 @@ Thumbs.db
 *.swo
 *~
 
+
 # Node
 node_modules/
 npm-debug.log
@@ -49,6 +50,8 @@ wheels/
 *.egg
 venv/
 ENV/
+.venv/
+.ruff_cache/
 
 # Logs and databases
 *.log

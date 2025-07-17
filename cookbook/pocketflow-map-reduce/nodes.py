@@ -1,12 +1,15 @@
-from pocketflow import Node, BatchNode
-from utils import call_llm
-import yaml
 import os
+
+import yaml
+
+from pocketflow import BatchNode, Node
+from utils import call_llm
+
 
 class ReadResumesNode(Node):
     """Map phase: Read all resumes from the data directory into shared storage."""
     
-    def exec(self, _):
+    def exec(self, prep_res):
         resume_files = {}
         data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
         
@@ -29,9 +32,9 @@ class EvaluateResumesNode(BatchNode):
     def prep(self, shared):
         return list(shared["resumes"].items())
     
-    def exec(self, resume_item):
+    def exec(self, prep_res):
         """Evaluate a single resume."""
-        filename, content = resume_item
+        filename, content = prep_res
         
         prompt = f"""
 Evaluate the following resume and determine if the candidate qualifies for an advanced technical role.
@@ -60,8 +63,8 @@ reasons:
         
         return (filename, result)
 
-    def post(self, shared, prep_res, exec_res_list):
-        shared["evaluations"] = {filename: result for filename, result in exec_res_list}
+    def post(self, shared, prep_res, exec_res):
+        shared["evaluations"] = {filename: result for filename, result in exec_res}
         return "default"
 
 
@@ -71,12 +74,12 @@ class ReduceResultsNode(Node):
     def prep(self, shared):
         return shared["evaluations"]
     
-    def exec(self, evaluations):
+    def exec(self, prep_res):
         qualified_count = 0
-        total_count = len(evaluations)
+        total_count = len(prep_res)
         qualified_candidates = []
         
-        for filename, evaluation in evaluations.items():
+        for filename, evaluation in prep_res.items():
             if evaluation.get("qualifies", False):
                 qualified_count += 1
                 qualified_candidates.append(evaluation.get("candidate_name", "Unknown"))

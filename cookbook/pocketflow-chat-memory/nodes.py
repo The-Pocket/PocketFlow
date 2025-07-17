@@ -1,7 +1,8 @@
 from pocketflow import Node
-from utils.vector_index import create_index, add_vector, search_vectors
 from utils.call_llm import call_llm
 from utils.get_embedding import get_embedding
+from utils.vector_index import add_vector, create_index, search_vectors
+
 
 class GetUserQuestionNode(Node):
     def prep(self, shared):
@@ -12,7 +13,7 @@ class GetUserQuestionNode(Node):
         
         return None
     
-    def exec(self, _):
+    def exec(self, prep_res):
         """Get user input interactively"""
         # Get interactive input from user
         user_input = input("\nYou: ")
@@ -62,13 +63,13 @@ class AnswerNode(Node):
         
         return context
     
-    def exec(self, messages):
+    def exec(self, prep_res):
         """Generate a response using the LLM"""
-        if messages is None:
+        if prep_res is None:
             return None
         
         # Call LLM with the context
-        response = call_llm(messages)
+        response = call_llm(prep_res)
         return response
     
     def post(self, shared, prep_res, exec_res):
@@ -103,21 +104,21 @@ class EmbedNode(Node):
         
         return oldest_pair
     
-    def exec(self, conversation):
+    def exec(self, prep_res):
         """Embed a conversation"""
-        if not conversation:
+        if not prep_res:
             return None
             
         # Combine user and assistant messages into a single text for embedding
-        user_msg = next((msg for msg in conversation if msg["role"] == "user"), {"content": ""})
-        assistant_msg = next((msg for msg in conversation if msg["role"] == "assistant"), {"content": ""})
+        user_msg = next((msg for msg in prep_res if msg["role"] == "user"), {"content": ""})
+        assistant_msg = next((msg for msg in prep_res if msg["role"] == "assistant"), {"content": ""})
         combined = f"User: {user_msg['content']} Assistant: {assistant_msg['content']}"
         
         # Generate embedding
         embedding = get_embedding(combined)
         
         return {
-            "conversation": conversation,
+            "conversation": prep_res,
             "embedding": embedding
         }
     
@@ -164,14 +165,14 @@ class RetrieveNode(Node):
             "vector_items": shared["vector_items"]
         }
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Find the most relevant past conversation"""
-        if not inputs:
+        if not prep_res:
             return None
             
-        query = inputs["query"]
-        vector_index = inputs["vector_index"]
-        vector_items = inputs["vector_items"]
+        query = prep_res["query"]
+        vector_index = prep_res["vector_index"]
+        vector_items = prep_res["vector_items"]
         
         print(f"🔍 Finding relevant conversation for: {query[:30]}...")
         

@@ -1,17 +1,18 @@
-import numpy as np
-import scipy.io.wavfile
 import io
-import soundfile # For converting MP3 bytes to NumPy array
+
+import scipy.io.wavfile
+import soundfile  # For converting MP3 bytes to NumPy array
 
 from pocketflow import Node
-from utils.audio_utils import record_audio, play_audio_data
-from utils.speech_to_text import speech_to_text_api
+from utils.audio_utils import play_audio_data, record_audio
 from utils.call_llm import call_llm
+from utils.speech_to_text import speech_to_text_api
 from utils.text_to_speech import text_to_speech_api
+
 
 class CaptureAudioNode(Node):
     """Records audio input from the user using VAD."""
-    def exec(self, _): # prep_res is not used as per design
+    def exec(self, prep_res): # prep_res is not used as per design
         print("\nListening for your query...")
         audio_data, sample_rate = record_audio()
         if audio_data is None:

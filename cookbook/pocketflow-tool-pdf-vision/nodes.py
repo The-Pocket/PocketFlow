@@ -1,9 +1,11 @@
-from pocketflow import Node, BatchNode
+import os
+from pathlib import Path
+
 from tools.pdf import pdf_to_images
 from tools.vision import extract_text_from_image
-from typing import List, Dict, Any
-from pathlib import Path
-import os
+
+from pocketflow import BatchNode, Node
+
 
 class ProcessPDFBatchNode(BatchNode):
     """Node for processing multiple PDFs from a directory"""
@@ -30,25 +32,25 @@ class ProcessPDFBatchNode(BatchNode):
         print(f"Found {len(pdf_files)} PDF files")
         return pdf_files
     
-    def exec(self, item):
+    def exec(self, prep_res):
         # Create flow for single PDF
         flow = create_single_pdf_flow()
         
         # Process PDF
-        print(f"\nProcessing: {os.path.basename(item['pdf_path'])}")
+        print(f"\nProcessing: {os.path.basename(prep_res['pdf_path'])}")
         print("-" * 50)
         
         # Run flow
-        shared = item.copy()
+        shared = prep_res.copy()
         flow.run(shared)
         
         return {
-            "filename": os.path.basename(item["pdf_path"]),
+            "filename": os.path.basename(prep_res["pdf_path"]),
             "text": shared.get("final_text", "No text extracted")
         }
     
-    def post(self, shared, prep_res, exec_res_list):
-        shared["results"] = exec_res_list
+    def post(self, shared, prep_res, exec_res):
+        shared["results"] = exec_res
         return "default"
 
 class LoadPDFNode(Node):
@@ -57,8 +59,8 @@ class LoadPDFNode(Node):
     def prep(self, shared):
         return shared.get("pdf_path", "")
         
-    def exec(self, pdf_path):
-        return pdf_to_images(pdf_path)
+    def exec(self, prep_res):
+        return pdf_to_images(prep_res)
         
     def post(self, shared, prep_res, exec_res):
         shared["page_images"] = exec_res
@@ -73,8 +75,8 @@ class ExtractTextNode(Node):
             shared.get("extraction_prompt", None)
         )
         
-    def exec(self, inputs):
-        images, prompt = inputs
+    def exec(self, prep_res):
+        images, prompt = prep_res
         results = []
         
         for img, page_num in images:
@@ -96,9 +98,9 @@ class CombineResultsNode(Node):
     def prep(self, shared):
         return shared.get("extracted_text", [])
         
-    def exec(self, results):
+    def exec(self, prep_res):
         # Sort by page number
-        sorted_results = sorted(results, key=lambda x: x["page"])
+        sorted_results = sorted(prep_res, key=lambda x: x["page"])
         
         # Combine text with page numbers
         combined = []

@@ -1,7 +1,10 @@
-from pocketflow import Node, Flow
-from utils import call_llm, get_tools, call_tool
-import yaml
 import sys
+
+import yaml
+
+from pocketflow import Flow, Node
+from utils import call_llm, call_tool, get_tools
+
 
 class GetToolsNode(Node):
     def prep(self, shared):
@@ -10,9 +13,9 @@ class GetToolsNode(Node):
         print("🔍 Getting available tools...")
         return "simple_server.py"
 
-    def exec(self, server_path):
+    def exec(self, prep_res):
         """Retrieve tools from the MCP server"""
-        tools = get_tools(server_path)
+        tools = get_tools(prep_res)
         return tools
 
     def post(self, shared, prep_res, exec_res):
@@ -73,10 +76,10 @@ IMPORTANT:
 """
         return prompt
 
-    def exec(self, prompt):
+    def exec(self, prep_res):
         """Call LLM to process the question and decide which tool to use"""
         print("🤔 Analyzing question and deciding which tool to use...")
-        response = call_llm(prompt)
+        response = call_llm(prep_res)
         return response
 
     def post(self, shared, prep_res, exec_res):
@@ -103,9 +106,9 @@ class ExecuteToolNode(Node):
         """Prepare tool execution parameters"""
         return shared["tool_name"], shared["parameters"]
 
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Execute the chosen tool"""
-        tool_name, parameters = inputs
+        tool_name, parameters = prep_res
         print(f"🔧 Executing tool '{tool_name}' with parameters: {parameters}")
         result = call_tool("simple_server.py", tool_name, parameters)
         return result

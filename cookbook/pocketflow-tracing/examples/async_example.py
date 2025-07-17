@@ -7,8 +7,9 @@ and AsyncNode to trace asynchronous workflows.
 """
 
 import asyncio
-import sys
 import os
+import sys
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -18,8 +19,9 @@ load_dotenv()
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from pocketflow import AsyncNode, AsyncFlow
-from tracing import trace_flow, TracingConfig
+from tracing import trace_flow
+
+from pocketflow import AsyncFlow, AsyncNode
 
 
 class AsyncDataFetchNode(AsyncNode):
@@ -30,17 +32,17 @@ class AsyncDataFetchNode(AsyncNode):
         query = shared.get("query", "default")
         return query
 
-    async def exec_async(self, query):
+    async def exec_async(self, prep_res):
         """Simulate async data fetching."""
-        print(f"🔍 Fetching data for query: {query}")
+        print(f"🔍 Fetching data for query: {prep_res}")
 
         # Simulate async operation
         await asyncio.sleep(1)
 
         # Return mock data
         data = {
-            "query": query,
-            "results": [f"Result {i} for {query}" for i in range(3)],
+            "query": prep_res,
+            "results": [f"Result {i} for {prep_res}" for i in range(3)],
             "timestamp": "2024-01-01T00:00:00Z",
         }
         return data
@@ -58,7 +60,7 @@ class AsyncDataProcessNode(AsyncNode):
         """Get the fetched data."""
         return shared.get("fetched_data", {})
 
-    async def exec_async(self, data):
+    async def exec_async(self, prep_res):
         """Process the data asynchronously."""
         print("⚙️ Processing fetched data...")
 
@@ -67,11 +69,11 @@ class AsyncDataProcessNode(AsyncNode):
 
         # Process the results
         processed_results = []
-        for result in data.get("results", []):
+        for result in prep_res.get("results", []):
             processed_results.append(f"PROCESSED: {result}")
 
         return {
-            "original_query": data.get("query"),
+            "original_query": prep_res.get("query"),
             "processed_results": processed_results,
             "result_count": len(processed_results),
         }

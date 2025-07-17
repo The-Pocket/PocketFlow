@@ -1,5 +1,6 @@
-from pocketflow import Node, Flow
+from pocketflow import Flow, Node
 from utils import call_llm
+
 
 class UserInputNode(Node):
     def prep(self, shared):
@@ -10,7 +11,7 @@ class UserInputNode(Node):
         
         return None
 
-    def exec(self, _):
+    def exec(self, prep_res):
         # Get user input
         user_input = input("\nYou: ")
         return user_input
@@ -35,19 +36,19 @@ class GuardrailNode(Node):
         user_input = shared.get("user_input", "")
         return user_input
     
-    def exec(self, user_input):
+    def exec(self, prep_res):
         # Basic validation checks
-        if not user_input or user_input.strip() == "":
+        if not prep_res or prep_res.strip() == "":
             return False, "Your query is empty. Please provide a travel-related question."
         
-        if len(user_input.strip()) < 3:
+        if len(prep_res.strip()) < 3:
             return False, "Your query is too short. Please provide more details about your travel question."
         
         # LLM-based validation for travel topics
         prompt = f"""
 Evaluate if the following user query is related to travel advice, destinations, planning, or other travel topics.
 The chat should ONLY answer travel-related questions and reject any off-topic, harmful, or inappropriate queries.
-User query: {user_input}
+User query: {prep_res}
 Return your evaluation in YAML format:
 ```yaml
 valid: true/false
@@ -96,9 +97,9 @@ class LLMNode(Node):
         # Return all messages for the LLM
         return shared["messages"]
 
-    def exec(self, messages):
+    def exec(self, prep_res):
         # Call LLM with the entire conversation history
-        response = call_llm(messages)
+        response = call_llm(prep_res)
         return response
 
     def post(self, shared, prep_res, exec_res):

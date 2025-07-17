@@ -1,10 +1,11 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import Node, AsyncNode, Flow, AsyncFlow
+from pocketflow import AsyncFlow, AsyncNode, Flow, Node
+
 
 class FallbackNode(Node):
     def __init__(self, should_fail=True, max_retries=1):
@@ -12,24 +13,24 @@ class FallbackNode(Node):
         self.should_fail = should_fail
         self.attempt_count = 0
     
-    def prep(self, shared_storage):
-        if 'results' not in shared_storage:
-            shared_storage['results'] = []
+    def prep(self, shared):
+        if 'results' not in shared:
+            shared['results'] = []
         return None
     
-    def exec(self, prep_result):
+    def exec(self, prep_res):
         self.attempt_count += 1
         if self.should_fail:
             raise ValueError("Intentional failure")
         return "success"
     
-    def exec_fallback(self, prep_result, exc):
+    def exec_fallback(self, prep_res, exc):
         return "fallback"
     
-    def post(self, shared_storage, prep_result, exec_result):
-        shared_storage['results'].append({
+    def post(self, shared, prep_res, exec_res):
+        shared['results'].append({
             'attempts': self.attempt_count,
-            'result': exec_result
+            'result': exec_res
         })
 
 class AsyncFallbackNode(AsyncNode):
@@ -38,102 +39,102 @@ class AsyncFallbackNode(AsyncNode):
         self.should_fail = should_fail
         self.attempt_count = 0
     
-    async def prep_async(self, shared_storage):
-        if 'results' not in shared_storage:
-            shared_storage['results'] = []
+    async def prep_async(self, shared):
+        if 'results' not in shared:
+            shared['results'] = []
         return None
     
-    async def exec_async(self, prep_result):
+    async def exec_async(self, prep_res):
         self.attempt_count += 1
         if self.should_fail:
             raise ValueError("Intentional async failure")
         return "success"
     
-    async def exec_fallback_async(self, prep_result, exc):
+    async def exec_fallback_async(self, prep_res, exc):
         await asyncio.sleep(0.01)  # Simulate async work
         return "async_fallback"
     
-    async def post_async(self, shared_storage, prep_result, exec_result):
-        shared_storage['results'].append({
+    async def post_async(self, shared, prep_res, exec_res):
+        shared['results'].append({
             'attempts': self.attempt_count,
-            'result': exec_result
+            'result': exec_res
         })
 
 class TestExecFallback(unittest.TestCase):
     def test_successful_execution(self):
         """Test that exec_fallback is not called when execution succeeds"""
-        shared_storage = {}
+        shared = {}
         node = FallbackNode(should_fail=False)
-        result = node.run(shared_storage)
+        result = node.run(shared)
         
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['attempts'], 1)
-        self.assertEqual(shared_storage['results'][0]['result'], "success")
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['attempts'], 1)
+        self.assertEqual(shared['results'][0]['result'], "success")
 
     def test_fallback_after_failure(self):
         """Test that exec_fallback is called after all retries are exhausted"""
-        shared_storage = {}
+        shared = {}
         node = FallbackNode(should_fail=True, max_retries=2)
-        result = node.run(shared_storage)
+        result = node.run(shared)
         
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['attempts'], 2)
-        self.assertEqual(shared_storage['results'][0]['result'], "fallback")
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['attempts'], 2)
+        self.assertEqual(shared['results'][0]['result'], "fallback")
 
     def test_fallback_in_flow(self):
         """Test that fallback works within a Flow"""
         class ResultNode(Node):
-            def prep(self, shared_storage):
-                return shared_storage.get('results', [])
+            def prep(self, shared):
+                return shared.get('results', [])
                 
-            def exec(self, prep_result):
-                return prep_result
+            def exec(self, prep_res):
+                return prep_res
                 
-            def post(self, shared_storage, prep_result, exec_result):
-                shared_storage['final_result'] = exec_result
+            def post(self, shared, prep_res, exec_res):
+                shared['final_result'] = exec_res
                 return None
         
-        shared_storage = {}
+        shared = {}
         fallback_node = FallbackNode(should_fail=True)
         result_node = ResultNode()
         fallback_node >> result_node
         
         flow = Flow(start=fallback_node)
-        flow.run(shared_storage)
+        flow.run(shared)
         
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['result'], "fallback")
-        self.assertEqual(shared_storage['final_result'], [{'attempts': 1, 'result': 'fallback'}] )
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['result'], "fallback")
+        self.assertEqual(shared['final_result'], [{'attempts': 1, 'result': 'fallback'}] )
 
     def test_no_fallback_implementation(self):
         """Test that default fallback behavior raises the exception"""
         class NoFallbackNode(Node):
-            def prep(self, shared_storage):
-                if 'results' not in shared_storage:
-                    shared_storage['results'] = []
+            def prep(self, shared):
+                if 'results' not in shared:
+                    shared['results'] = []
                 return None
             
-            def exec(self, prep_result):
+            def exec(self, prep_res):
                 raise ValueError("Test error")
             
-            def post(self, shared_storage, prep_result, exec_result):
-                shared_storage['results'].append({'result': exec_result})
-                return exec_result
+            def post(self, shared, prep_res, exec_res):
+                shared['results'].append({'result': exec_res})
+                return exec_res
         
-        shared_storage = {}
+        shared = {}
         node = NoFallbackNode()
         with self.assertRaises(ValueError):
-            node.run(shared_storage)
+            node.run(shared)
 
     def test_retry_before_fallback(self):
         """Test that retries are attempted before calling fallback"""
-        shared_storage = {}
+        shared = {}
         node = FallbackNode(should_fail=True, max_retries=3)
-        node.run(shared_storage)
+        node.run(shared)
         
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['attempts'], 3)
-        self.assertEqual(shared_storage['results'][0]['result'], "fallback")
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['attempts'], 3)
+        self.assertEqual(shared['results'][0]['result'], "fallback")
 
 class TestAsyncExecFallback(unittest.TestCase):
     def setUp(self):
@@ -146,77 +147,77 @@ class TestAsyncExecFallback(unittest.TestCase):
     def test_async_successful_execution(self):
         """Test that async exec_fallback is not called when execution succeeds"""
         async def run_test():
-            shared_storage = {}
+            shared = {}
             node = AsyncFallbackNode(should_fail=False)
-            await node.run_async(shared_storage)
-            return shared_storage
+            await node.run_async(shared)
+            return shared
         
-        shared_storage = self.loop.run_until_complete(run_test())
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['attempts'], 1)
-        self.assertEqual(shared_storage['results'][0]['result'], "success")
+        shared = self.loop.run_until_complete(run_test())
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['attempts'], 1)
+        self.assertEqual(shared['results'][0]['result'], "success")
 
     def test_async_fallback_after_failure(self):
         """Test that async exec_fallback is called after all retries are exhausted"""
         async def run_test():
-            shared_storage = {}
+            shared = {}
             node = AsyncFallbackNode(should_fail=True, max_retries=2)
-            await node.run_async(shared_storage)
-            return shared_storage
+            await node.run_async(shared)
+            return shared
         
-        shared_storage = self.loop.run_until_complete(run_test())
+        shared = self.loop.run_until_complete(run_test())
         
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['attempts'], 2)
-        self.assertEqual(shared_storage['results'][0]['result'], "async_fallback")
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['attempts'], 2)
+        self.assertEqual(shared['results'][0]['result'], "async_fallback")
 
     def test_async_fallback_in_flow(self):
         """Test that async fallback works within an AsyncFlow"""
         class AsyncResultNode(AsyncNode):
-            async def prep_async(self, shared_storage):
-                return shared_storage['results'][-1]['result']  # Get last result
+            async def prep_async(self, shared):
+                return shared['results'][-1]['result']  # Get last result
                 
-            async def exec_async(self, prep_result):
-                return prep_result
+            async def exec_async(self, prep_res):
+                return prep_res
                 
-            async def post_async(self, shared_storage, prep_result, exec_result):
-                shared_storage['final_result'] = exec_result
+            async def post_async(self, shared, prep_res, exec_res):
+                shared['final_result'] = exec_res
                 return "done"
         
         async def run_test():
-            shared_storage = {}
+            shared = {}
             fallback_node = AsyncFallbackNode(should_fail=True)
             result_node = AsyncResultNode()
             fallback_node >> result_node
             
             flow = AsyncFlow(start=fallback_node)
-            await flow.run_async(shared_storage)
-            return shared_storage
+            await flow.run_async(shared)
+            return shared
         
-        shared_storage = self.loop.run_until_complete(run_test())
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['result'], "async_fallback")
-        self.assertEqual(shared_storage['final_result'], "async_fallback")
+        shared = self.loop.run_until_complete(run_test())
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['result'], "async_fallback")
+        self.assertEqual(shared['final_result'], "async_fallback")
 
     def test_async_no_fallback_implementation(self):
         """Test that default async fallback behavior raises the exception"""
         class NoFallbackAsyncNode(AsyncNode):
-            async def prep_async(self, shared_storage):
-                if 'results' not in shared_storage:
-                    shared_storage['results'] = []
+            async def prep_async(self, shared):
+                if 'results' not in shared:
+                    shared['results'] = []
                 return None
             
-            async def exec_async(self, prep_result):
+            async def exec_async(self, prep_res):
                 raise ValueError("Test async error")
             
-            async def post_async(self, shared_storage, prep_result, exec_result):
-                shared_storage['results'].append({'result': exec_result})
-                return exec_result
+            async def post_async(self, shared, prep_res, exec_res):
+                shared['results'].append({'result': exec_res})
+                return exec_res
         
         async def run_test():
-            shared_storage = {}
+            shared = {}
             node = NoFallbackAsyncNode()
-            await node.run_async(shared_storage)
+            await node.run_async(shared)
         
         with self.assertRaises(ValueError):
             self.loop.run_until_complete(run_test())
@@ -224,15 +225,15 @@ class TestAsyncExecFallback(unittest.TestCase):
     def test_async_retry_before_fallback(self):
         """Test that retries are attempted before calling async fallback"""
         async def run_test():
-            shared_storage = {}
+            shared = {}
             node = AsyncFallbackNode(should_fail=True, max_retries=3)
-            result = await node.run_async(shared_storage)
-            return result, shared_storage
+            result = await node.run_async(shared)
+            return result, shared
         
-        result, shared_storage = self.loop.run_until_complete(run_test())
-        self.assertEqual(len(shared_storage['results']), 1)
-        self.assertEqual(shared_storage['results'][0]['attempts'], 3)
-        self.assertEqual(shared_storage['results'][0]['result'], "async_fallback")
+        result, shared = self.loop.run_until_complete(run_test())
+        self.assertEqual(len(shared['results']), 1)
+        self.assertEqual(shared['results'][0]['attempts'], 3)
+        self.assertEqual(shared['results'][0]['result'], "async_fallback")
 
 if __name__ == '__main__':
     unittest.main()

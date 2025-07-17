@@ -1,10 +1,12 @@
-from pocketflow import Node
 from tools.database import execute_sql, init_db
+
+from pocketflow import Node
+
 
 class InitDatabaseNode(Node):
     """Node for initializing the database"""
     
-    def exec(self, _):
+    def exec(self, prep_res):
         init_db()
         return "Database initialized"
         
@@ -21,8 +23,8 @@ class CreateTaskNode(Node):
             shared.get("task_description", "")
         )
         
-    def exec(self, inputs):
-        title, description = inputs
+    def exec(self, prep_res):
+        title, description = prep_res
         query = "INSERT INTO tasks (title, description) VALUES (?, ?)"
         execute_sql(query, (title, description))
         return "Task created successfully"
@@ -34,7 +36,7 @@ class CreateTaskNode(Node):
 class ListTasksNode(Node):
     """Node for listing all tasks"""
     
-    def exec(self, _):
+    def exec(self, prep_res):
         query = "SELECT * FROM tasks"
         return execute_sql(query)
         

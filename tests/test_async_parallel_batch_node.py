@@ -1,26 +1,27 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncParallelBatchNode, AsyncParallelBatchFlow
+from pocketflow import AsyncParallelBatchNode
+
 
 class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
     def __init__(self, delay=0.1):
         super().__init__()
         self.delay = delay
     
-    async def prep_async(self, shared_storage):
-        numbers = shared_storage.get('input_numbers', [])
+    async def prep_async(self, shared):
+        numbers = shared.get('input_numbers', [])
         return numbers
     
-    async def exec_async(self, number):
+    async def exec_async(self, prep_res):
         await asyncio.sleep(self.delay)  # Simulate async processing
-        return number * 2
+        return prep_res * 2
         
-    async def post_async(self, shared_storage, prep_result, exec_result):
-        shared_storage['processed_numbers'] = exec_result
+    async def post_async(self, shared, prep_res, exec_res):
+        shared['processed_numbers'] = exec_res
         return "processed"
 
 class TestAsyncParallelBatchNode(unittest.TestCase):
@@ -36,7 +37,7 @@ class TestAsyncParallelBatchNode(unittest.TestCase):
         """
         Test that numbers are processed in parallel by measuring execution time
         """
-        shared_storage = {
+        shared = {
             'input_numbers': list(range(5))
         }
         
@@ -44,12 +45,12 @@ class TestAsyncParallelBatchNode(unittest.TestCase):
         
         # Run the processor
         start_time = asyncio.get_event_loop().time()
-        self.loop.run_until_complete(processor.run_async(shared_storage))
+        self.loop.run_until_complete(processor.run_async(shared))
         end_time = asyncio.get_event_loop().time()
         
         # Check results
         expected = [0, 2, 4, 6, 8]  # Each number doubled
-        self.assertEqual(shared_storage['processed_numbers'], expected)
+        self.assertEqual(shared['processed_numbers'], expected)
         
         # Since processing is parallel, total time should be approximately
         # equal to the delay of a single operation, not delay * number_of_items
@@ -60,60 +61,60 @@ class TestAsyncParallelBatchNode(unittest.TestCase):
         """
         Test processing of empty input
         """
-        shared_storage = {
+        shared = {
             'input_numbers': []
         }
         
         processor = AsyncParallelNumberProcessor()
-        self.loop.run_until_complete(processor.run_async(shared_storage))
+        self.loop.run_until_complete(processor.run_async(shared))
         
-        self.assertEqual(shared_storage['processed_numbers'], [])
+        self.assertEqual(shared['processed_numbers'], [])
     
     def test_single_item(self):
         """
         Test processing of a single item
         """
-        shared_storage = {
+        shared = {
             'input_numbers': [42]
         }
         
         processor = AsyncParallelNumberProcessor()
-        self.loop.run_until_complete(processor.run_async(shared_storage))
+        self.loop.run_until_complete(processor.run_async(shared))
         
-        self.assertEqual(shared_storage['processed_numbers'], [84])
+        self.assertEqual(shared['processed_numbers'], [84])
     
     def test_large_batch(self):
         """
         Test processing of a large batch of numbers
         """
         input_size = 100
-        shared_storage = {
+        shared = {
             'input_numbers': list(range(input_size))
         }
         
         processor = AsyncParallelNumberProcessor(delay=0.01)
-        self.loop.run_until_complete(processor.run_async(shared_storage))
+        self.loop.run_until_complete(processor.run_async(shared))
         
         expected = [x * 2 for x in range(input_size)]
-        self.assertEqual(shared_storage['processed_numbers'], expected)
+        self.assertEqual(shared['processed_numbers'], expected)
     
     def test_error_handling(self):
         """
         Test error handling during parallel processing
         """
         class ErrorProcessor(AsyncParallelNumberProcessor):
-            async def exec_async(self, item):
-                if item == 2:
-                    raise ValueError(f"Error processing item {item}")
-                return item
+            async def exec_async(self, prep_res):
+                if prep_res == 2:
+                    raise ValueError(f"Error processing item {prep_res}")
+                return prep_res
         
-        shared_storage = {
+        shared = {
             'input_numbers': [1, 2, 3]
         }
         
         processor = ErrorProcessor()
         with self.assertRaises(ValueError):
-            self.loop.run_until_complete(processor.run_async(shared_storage))
+            self.loop.run_until_complete(processor.run_async(shared))
     
     def test_concurrent_execution(self):
         """
@@ -122,18 +123,18 @@ class TestAsyncParallelBatchNode(unittest.TestCase):
         execution_order = []
         
         class OrderTrackingProcessor(AsyncParallelNumberProcessor):
-            async def exec_async(self, item):
-                delay = 0.1 if item % 2 == 0 else 0.05
+            async def exec_async(self, prep_res):
+                delay = 0.1 if prep_res % 2 == 0 else 0.05
                 await asyncio.sleep(delay)
-                execution_order.append(item)
-                return item
+                execution_order.append(prep_res)
+                return prep_res
         
-        shared_storage = {
+        shared = {
             'input_numbers': list(range(4))  # [0, 1, 2, 3]
         }
         
         processor = OrderTrackingProcessor()
-        self.loop.run_until_complete(processor.run_async(shared_storage))
+        self.loop.run_until_complete(processor.run_async(shared))
         
         # Odd numbers should finish before even numbers due to shorter delay
         self.assertLess(execution_order.index(1), execution_order.index(0))
