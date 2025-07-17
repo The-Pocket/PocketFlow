@@ -1,7 +1,8 @@
-from pocketflow import Node
-from tools.search import SearchTool
 from tools.parser import analyze_results
-from typing import List, Dict
+from tools.search import SearchTool
+
+from pocketflow import Node
+
 
 class SearchNode(Node):
     """Node to perform web search using SerpAPI"""
@@ -9,8 +10,8 @@ class SearchNode(Node):
     def prep(self, shared):
         return shared.get("query"), shared.get("num_results", 5)
         
-    def exec(self, inputs):
-        query, num_results = inputs
+    def exec(self, prep_res):
+        query, num_results = prep_res
         if not query:
             return []
             
@@ -27,8 +28,8 @@ class AnalyzeResultsNode(Node):
     def prep(self, shared):
         return shared.get("query"), shared.get("search_results", [])
         
-    def exec(self, inputs):
-        query, results = inputs
+    def exec(self, prep_res):
+        query, results = prep_res
         if not results:
             return {
                 "summary": "No search results to analyze",

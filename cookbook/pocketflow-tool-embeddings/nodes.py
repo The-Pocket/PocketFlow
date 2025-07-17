@@ -1,5 +1,7 @@
-from pocketflow import Node
 from tools.embeddings import get_embedding
+
+from pocketflow import Node
+
 
 class EmbeddingNode(Node):
     """Node for getting embeddings from OpenAI API"""
@@ -8,9 +10,9 @@ class EmbeddingNode(Node):
         # Get text from shared store
         return shared.get("text", "")
         
-    def exec(self, text):
+    def exec(self, prep_res):
         # Get embedding using tool function
-        return get_embedding(text)
+        return get_embedding(prep_res)
         
     def post(self, shared, prep_res, exec_res):
         # Store embedding in shared store

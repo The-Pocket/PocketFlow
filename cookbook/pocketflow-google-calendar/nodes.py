@@ -1,6 +1,6 @@
 from pocketflow import Node
-from utils.google_calendar import create_event, list_events, list_calendar_lists
-from datetime import datetime, timedelta
+from utils.google_calendar import create_event, list_calendar_lists, list_events
+
 
 class CreateCalendarEventNode(Node):
     def prep(self, shared):
@@ -12,14 +12,14 @@ class CreateCalendarEventNode(Node):
             'end_time': shared.get('event_end_time')
         }
     
-    def exec(self, event_data):
+    def exec(self, prep_res):
         """Creates a new calendar event."""
         try:
             event = create_event(
-                summary=event_data['summary'],
-                description=event_data['description'],
-                start_time=event_data['start_time'],
-                end_time=event_data['end_time']
+                summary=prep_res['summary'],
+                description=prep_res['description'],
+                start_time=prep_res['start_time'],
+                end_time=prep_res['end_time']
             )
             return {'success': True, 'event': event}
         except Exception as e:
@@ -41,10 +41,10 @@ class ListCalendarEventsNode(Node):
             'days': shared.get('days_to_list', 7)
         }
     
-    def exec(self, params):
+    def exec(self, prep_res):
         """Lists calendar events."""
         try:
-            events = list_events(days=params['days'])
+            events = list_events(days=prep_res['days'])
             return {'success': True, 'events': events}
         except Exception as e:
             return {'success': False, 'error': str(e)}
@@ -63,7 +63,7 @@ class ListCalendarsNode(Node):
         """No special preparation needed to list calendars."""
         return {}
 
-    def exec(self, params):
+    def exec(self, prep_res):
         """Lists all available calendars for the user."""
         try:
             calendars = list_calendar_lists()

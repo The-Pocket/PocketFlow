@@ -6,8 +6,9 @@ This example shows how to use the @trace_flow decorator to automatically
 trace a simple PocketFlow workflow.
 """
 
-import sys
 import os
+import sys
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -17,8 +18,9 @@ load_dotenv()
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from pocketflow import Node, Flow
-from tracing import trace_flow, TracingConfig
+from tracing import trace_flow
+
+from pocketflow import Flow, Node
 
 
 class GreetingNode(Node):
@@ -29,9 +31,9 @@ class GreetingNode(Node):
         name = shared.get("name", "World")
         return name
 
-    def exec(self, name):
+    def exec(self, prep_res):
         """Create a greeting message."""
-        greeting = f"Hello, {name}!"
+        greeting = f"Hello, {prep_res}!"
         return greeting
 
     def post(self, shared, prep_res, exec_res):
@@ -47,9 +49,9 @@ class UppercaseNode(Node):
         """Get the greeting from shared data."""
         return shared.get("greeting", "")
 
-    def exec(self, greeting):
+    def exec(self, prep_res):
         """Convert to uppercase."""
-        return greeting.upper()
+        return prep_res.upper()
 
     def post(self, shared, prep_res, exec_res):
         """Store the uppercase greeting."""

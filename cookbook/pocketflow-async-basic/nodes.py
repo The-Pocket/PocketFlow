@@ -1,5 +1,6 @@
 from pocketflow import AsyncNode
-from utils import fetch_recipes, call_llm_async, get_user_input
+from utils import call_llm_async, fetch_recipes, get_user_input
+
 
 class FetchRecipes(AsyncNode):
     """AsyncNode that fetches recipes."""
@@ -9,14 +10,14 @@ class FetchRecipes(AsyncNode):
         ingredient = await get_user_input("Enter ingredient: ")
         return ingredient
     
-    async def exec_async(self, ingredient):
+    async def exec_async(self, prep_res):
         """Fetch recipes asynchronously."""
-        recipes = await fetch_recipes(ingredient)
+        recipes = await fetch_recipes(prep_res)
         return recipes
     
-    async def post_async(self, shared, prep_res, recipes):
+    async def post_async(self, shared, prep_res, exec_res):
         """Store recipes and continue."""
-        shared["recipes"] = recipes
+        shared["recipes"] = exec_res
         shared["ingredient"] = prep_res
         return "suggest"
 
@@ -27,16 +28,16 @@ class SuggestRecipe(AsyncNode):
         """Get recipes from shared store."""
         return shared["recipes"]
     
-    async def exec_async(self, recipes):
+    async def exec_async(self, prep_res):
         """Get suggestion from LLM."""
         suggestion = await call_llm_async(
-            f"Choose best recipe from: {', '.join(recipes)}"
+            f"Choose best recipe from: {', '.join(prep_res)}"
         )
         return suggestion
     
-    async def post_async(self, shared, prep_res, suggestion):
+    async def post_async(self, shared, prep_res, exec_res):
         """Store suggestion and continue."""
-        shared["suggestion"] = suggestion
+        shared["suggestion"] = exec_res
         return "approve"
 
 class GetApproval(AsyncNode):
@@ -46,14 +47,14 @@ class GetApproval(AsyncNode):
         """Get current suggestion."""
         return shared["suggestion"]
     
-    async def exec_async(self, suggestion):
+    async def exec_async(self, prep_res):
         """Ask for user approval."""
-        answer = await get_user_input(f"\nAccept this recipe? (y/n): ")
+        answer = await get_user_input("\nAccept this recipe? (y/n): ")
         return answer
     
-    async def post_async(self, shared, prep_res, answer):
+    async def post_async(self, shared, prep_res, exec_res):
         """Handle user's decision."""
-        if answer == "y":
+        if exec_res == "y":
             print("\nGreat choice! Here's your recipe...")
             print(f"Recipe: {shared['suggestion']}")
             print(f"Ingredient: {shared['ingredient']}")

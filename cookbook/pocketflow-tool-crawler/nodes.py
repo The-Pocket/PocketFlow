@@ -1,7 +1,8 @@
-from pocketflow import Node, BatchNode
 from tools.crawler import WebCrawler
 from tools.parser import analyze_site
-from typing import List, Dict
+
+from pocketflow import BatchNode, Node
+
 
 class CrawlWebsiteNode(Node):
     """Node to crawl a website and extract content"""
@@ -9,8 +10,8 @@ class CrawlWebsiteNode(Node):
     def prep(self, shared):
         return shared.get("base_url"), shared.get("max_pages", 10)
         
-    def exec(self, inputs):
-        base_url, max_pages = inputs
+    def exec(self, prep_res):
+        base_url, max_pages = prep_res
         if not base_url:
             return []
             
@@ -30,13 +31,13 @@ class AnalyzeContentBatchNode(BatchNode):
         batch_size = 5
         return [results[i:i+batch_size] for i in range(0, len(results), batch_size)]
         
-    def exec(self, batch):
-        return analyze_site(batch)
+    def exec(self, prep_res):
+        return analyze_site(prep_res)
         
-    def post(self, shared, prep_res, exec_res_list):
+    def post(self, shared, prep_res, exec_res):
         # Flatten results from all batches
         all_results = []
-        for batch_results in exec_res_list:
+        for batch_results in exec_res:
             all_results.extend(batch_results)
             
         shared["analyzed_results"] = all_results
@@ -48,15 +49,15 @@ class GenerateReportNode(Node):
     def prep(self, shared):
         return shared.get("analyzed_results", [])
         
-    def exec(self, results):
-        if not results:
+    def exec(self, prep_res):
+        if not prep_res:
             return "No results to report"
             
         report = []
-        report.append(f"Analysis Report\n")
-        report.append(f"Total pages analyzed: {len(results)}\n")
+        report.append("Analysis Report\n")
+        report.append(f"Total pages analyzed: {len(prep_res)}\n")
         
-        for page in results:
+        for page in prep_res:
             report.append(f"\nPage: {page['url']}")
             report.append(f"Title: {page['title']}")
             

@@ -1,25 +1,27 @@
 import os
+
 from pocketflow import Node
+
 
 class LoadGrades(Node):
     """Node that loads grades from a student's file."""
     
     def prep(self, shared):
         """Get file path from parameters."""
-        class_name = self.params["class"]
-        student_file = self.params["student"]
+        class_name = str(self.params["class"])
+        student_file = str(self.params["student"])
         return os.path.join("school", class_name, student_file)
     
-    def exec(self, file_path):
+    def exec(self, prep_res):
         """Load and parse grades from file."""
-        with open(file_path, 'r') as f:
+        with open(prep_res, 'r') as f:
             # Each line is a grade
             grades = [float(line.strip()) for line in f]
         return grades
     
-    def post(self, shared, prep_res, grades):
+    def post(self, shared, prep_res, exec_res):
         """Store grades in shared store."""
-        shared["grades"] = grades
+        shared["grades"] = exec_res
         return "calculate"
 
 class CalculateAverage(Node):
@@ -29,11 +31,11 @@ class CalculateAverage(Node):
         """Get grades from shared store."""
         return shared["grades"]
     
-    def exec(self, grades):
+    def exec(self, prep_res):
         """Calculate average."""
-        return sum(grades) / len(grades)
+        return sum(prep_res) / len(prep_res)
     
-    def post(self, shared, prep_res, average):
+    def post(self, shared, prep_res, exec_res):
         """Store and print result."""
         # Store in results dictionary
         if "results" not in shared:
@@ -45,8 +47,8 @@ class CalculateAverage(Node):
         if class_name not in shared["results"]:
             shared["results"][class_name] = {}
             
-        shared["results"][class_name][student] = average
+        shared["results"][class_name][student] = exec_res
         
         # Print individual result
-        print(f"- {student}: Average = {average:.1f}")
+        print(f"- {student}: Average = {exec_res:.1f}")
         return "default" 

@@ -14,7 +14,7 @@ class BaseNode:
 
     def __init__(self) -> None:
         """Initializes a `BaseNode` object."""
-        self.params: dict[str, Any] = {}
+        self.params: dict[str, ParamValue] = {}
         self.successors: dict[str, "BaseNode"] = {}
 
     def set_params(self, params: dict[str, ParamValue]) -> None:
@@ -591,7 +591,7 @@ class AsyncFlow(Flow, AsyncNode):
     """
 
     async def _orch_async(
-        self, shared: dict[str, Any], params: dict[str, Any] | None = None
+        self, shared: dict[str, Any], params: dict[str, ParamValue] | None = None
     ) -> str | None:
         """The async orchestration logic of the flow.
 
@@ -600,7 +600,7 @@ class AsyncFlow(Flow, AsyncNode):
 
         Args:
             shared (dict[str, Any]): The shared storage of the flow.
-            params (dict[str, Any] | None, optional): The parameters to pass to
+            params (dict[str, ParamValue] | None, optional): The parameters to pass to
                 the nodes. Defaults to None.
 
         Returns:

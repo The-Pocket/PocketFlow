@@ -165,10 +165,10 @@ class TestAsyncBatchNode(unittest.TestCase):
     #     Test error handling in async batch processing
     #     """
     #     class ErrorAsyncBatchNode(AsyncBatchNode):
-    #         async def exec_async(self, item):
-    #             if item == 2:
+    #         async def exec_async(self, prep_res):
+    #             if prep_res == 2:
     #                 raise ValueError("Error processing item 2")
-    #             return item
+    #             return prep_res
 
     #     shared = {
     #         'input_array': [1, 2, 3]

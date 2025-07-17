@@ -2,6 +2,7 @@
 
 from pocketflow import Node
 
+
 class EndNode(Node):
     """Node that handles flow termination."""
     pass
@@ -38,9 +39,9 @@ class WordCounter(Node):
         """Get text from shared store."""
         return shared["text"]
     
-    def exec(self, text):
+    def exec(self, prep_res):
         """Count words in the text."""
-        return len(text.split())
+        return len(prep_res.split())
     
     def post(self, shared, prep_res, exec_res):
         """Update word count statistics."""
@@ -57,7 +58,7 @@ class ShowStats(Node):
     def post(self, shared, prep_res, exec_res):
         """Display statistics and continue the flow."""
         stats = prep_res
-        print(f"\nStatistics:")
+        print("\nStatistics:")
         print(f"- Texts processed: {stats['total_texts']}")
         print(f"- Total words: {stats['total_words']}")
         print(f"- Average words per text: {stats['total_words'] / stats['total_texts']:.1f}\n")

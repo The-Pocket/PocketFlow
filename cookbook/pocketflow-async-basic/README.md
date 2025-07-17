@@ -22,18 +22,18 @@ When you run the example:
        ingredient = input("Enter ingredient: ")
        return ingredient
 
-   async def exec_async(self, ingredient):
+   async def exec_async(self, prep_res):
        # Async API call
-       recipes = await fetch_recipes(ingredient)
+       recipes = await fetch_recipes(prep_res)
        return recipes
    ```
 
 2. **SuggestRecipe (AsyncNode)**
    ```python
-   async def exec_async(self, recipes):
+   async def exec_async(self, prep_res):
        # Async LLM call
        suggestion = await call_llm_async(
-           f"Choose best recipe from: {recipes}"
+           f"Choose best recipe from: {prep_res}"
        )
        return suggestion
    ```

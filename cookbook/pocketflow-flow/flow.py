@@ -1,4 +1,5 @@
-from pocketflow import Node, Flow
+from pocketflow import Flow, Node
+
 
 class TextInput(Node):
     def prep(self, shared):
@@ -28,8 +29,8 @@ class TextTransform(Node):
     def prep(self, shared):
         return shared["text"], shared["choice"]
     
-    def exec(self, inputs):
-        text, choice = inputs
+    def exec(self, prep_res):
+        text, choice = prep_res
         
         if choice == "1":
             return text.upper()

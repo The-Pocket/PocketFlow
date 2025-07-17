@@ -1,15 +1,18 @@
 import sqlite3
 import time
-import yaml # Import yaml here as nodes use it
+
+import yaml  # Import yaml here as nodes use it
+
 from pocketflow import Node
 from utils.call_llm import call_llm
+
 
 class GetSchema(Node):
     def prep(self, shared):
         return shared["db_path"]
 
-    def exec(self, db_path):
-        conn = sqlite3.connect(db_path)
+    def exec(self, prep_res):
+        conn = sqlite3.connect(prep_res)
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()

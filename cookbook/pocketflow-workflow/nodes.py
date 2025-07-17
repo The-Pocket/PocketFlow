@@ -1,15 +1,16 @@
-import re
-from pocketflow import Node, BatchNode
-from utils.call_llm import call_llm
 import yaml
+
+from pocketflow import BatchNode, Node
+from utils.call_llm import call_llm
+
 
 class GenerateOutline(Node):
     def prep(self, shared):
         return shared["topic"]
     
-    def exec(self, topic):
+    def exec(self, prep_res):
         prompt = f"""
-Create a simple outline for an article about {topic}.
+Create a simple outline for an article about {prep_res}.
 Include at most 3 main sections (no subsections).
 
 Output the sections in YAML format as shown below:
@@ -55,11 +56,11 @@ class WriteSimpleContent(BatchNode):
         self.sections = shared.get("sections", [])
         return self.sections
     
-    def exec(self, section):
+    def exec(self, prep_res):
         prompt = f"""
 Write a short paragraph (MAXIMUM 100 WORDS) about this section:
 
-{section}
+{prep_res}
 
 Requirements:
 - Explain the idea in simple, easy-to-understand terms
@@ -70,18 +71,18 @@ Requirements:
         content = call_llm(prompt)
         
         # Show progress for this section
-        current_section_index = self.sections.index(section) if section in self.sections else 0
+        current_section_index = self.sections.index(prep_res) if prep_res in self.sections else 0
         total_sections = len(self.sections)
-        print(f"✓ Completed section {current_section_index + 1}/{total_sections}: {section}")
+        print(f"✓ Completed section {current_section_index + 1}/{total_sections}: {prep_res}")
         
-        return section, content
+        return prep_res, content
     
-    def post(self, shared, prep_res, exec_res_list):
-        # exec_res_list contains [(section, content), (section, content), ...]
+    def post(self, shared, prep_res, exec_res):
+        # exec_res contains [(section, content), (section, content), ...]
         section_contents = {}
         all_sections_content = []
         
-        for section, content in exec_res_list:
+        for section, content in exec_res:
             section_contents[section] = content
             all_sections_content.append(f"## {section}\n\n{content}\n")
         
@@ -107,14 +108,14 @@ class ApplyStyle(Node):
         """
         return shared["draft"]
     
-    def exec(self, draft):
+    def exec(self, prep_res):
         """
         Apply a specific style to the article
         """
         prompt = f"""
         Rewrite the following draft in a conversational, engaging style:
         
-        {draft}
+        {prep_res}
         
         Make it:
         - Conversational and warm in tone

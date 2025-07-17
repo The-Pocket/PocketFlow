@@ -1,7 +1,10 @@
+import random
+
+import yaml
+
 from pocketflow import Node
 from utils import call_llm, search_web
-import yaml
-import random
+
 
 class DecideAction(Node):
     def prep(self, shared):
@@ -13,11 +16,11 @@ class DecideAction(Node):
         # Return both for the exec step
         return question, context
         
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Call the LLM to decide whether to search or answer."""
-        question, context = inputs
+        question, context = prep_res
         
-        print(f"🤔 Agent deciding what to do next...")
+        print("🤔 Agent deciding what to do next...")
         
         # Create a prompt to help the LLM decide what to do next
         prompt = f"""
@@ -65,7 +68,7 @@ search_query: <specific search query if action is search>
             shared["search_query"] = exec_res["search_query"]
             print(f"🔍 Agent decided to search for: {exec_res['search_query']}")
         else:
-            print(f"💡 Agent decided to answer the question")
+            print("💡 Agent decided to answer the question")
         
         # Return the action to determine the next node in the flow
         return exec_res["action"]
@@ -75,11 +78,11 @@ class SearchWeb(Node):
         """Get the search query from the shared store."""
         return shared["search_query"]
         
-    def exec(self, search_query):
+    def exec(self, prep_res):
         """Search the web for the given query."""
         # Call the search utility function
-        print(f"🌐 Searching the web for: {search_query}")
-        results = search_web(search_query)
+        print(f"🌐 Searching the web for: {prep_res}")
+        results = search_web(prep_res)
         return results
     
     def post(self, shared, prep_res, exec_res):
@@ -88,7 +91,7 @@ class SearchWeb(Node):
         previous = shared.get("context", "")
         shared["context"] = previous + "\n\nSEARCH: " + shared["search_query"] + "\nRESULTS: " + exec_res
         
-        print(f"📚 Found information, analyzing results...")
+        print("📚 Found information, analyzing results...")
         
         # Always go back to the decision node after searching
         return "decide"
@@ -98,16 +101,16 @@ class UnreliableAnswerNode(Node):
         """Get the question and context for answering."""
         return shared["question"], shared.get("context", "")
         
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Call the LLM to generate a final answer with 50% chance of returning a dummy answer."""
-        question, context = inputs
+        question, context = prep_res
         
         # 50% chance to return a dummy answer
         if random.random() < 0.5:
-            print(f"🤪 Generating unreliable dummy answer...")
+            print("🤪 Generating unreliable dummy answer...")
             return "Sorry, I'm on a coffee break right now. All information I provide is completely made up anyway. The answer to your question is 42, or maybe purple unicorns. Who knows? Certainly not me!"
         
-        print(f"✍️ Crafting final answer...")
+        print("✍️ Crafting final answer...")
         
         # Create a prompt for the LLM to answer the question
         prompt = f"""
@@ -128,16 +131,16 @@ Provide a comprehensive answer using the research results.
         # Save the answer in the shared store
         shared["answer"] = exec_res
         
-        print(f"✅ Answer generated successfully")
+        print("✅ Answer generated successfully")
 
 class SupervisorNode(Node):
     def prep(self, shared):
         """Get the current answer for evaluation."""
         return shared["answer"]
     
-    def exec(self, answer):
+    def exec(self, prep_res):
         """Check if the answer is valid or nonsensical."""
-        print(f"    🔍 Supervisor checking answer quality...")
+        print("    🔍 Supervisor checking answer quality...")
         
         # Check for obvious markers of the nonsense answers
         nonsense_markers = [
@@ -149,7 +152,7 @@ class SupervisorNode(Node):
         ]
         
         # Check if the answer contains any nonsense markers
-        is_nonsense = any(marker in answer for marker in nonsense_markers)
+        is_nonsense = any(marker in prep_res for marker in nonsense_markers)
         
         if is_nonsense:
             return {"valid": False, "reason": "Answer appears to be nonsensical or unhelpful"}

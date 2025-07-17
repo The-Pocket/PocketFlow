@@ -1,16 +1,18 @@
 import yaml
-from pocketflow import Node, BatchNode
+
+from pocketflow import BatchNode, Node
 from utils.call_llm import call_llm
 from utils.code_executor import execute_python
+
 
 class GenerateTestCases(Node):
     def prep(self, shared):
         return shared["problem"]
 
-    def exec(self, problem):
+    def exec(self, prep_res):
         prompt = f"""Generate 5-7 test cases for this coding problem:
 
-{problem}
+{prep_res}
 
 Output in this YAML format with reasoning:
 ```yaml
@@ -57,8 +59,8 @@ class ImplementFunction(Node):
     def prep(self, shared):
         return shared["problem"], shared["test_cases"]
 
-    def exec(self, inputs):
-        problem, test_cases = inputs
+    def exec(self, prep_res):
+        problem, test_cases = prep_res
         
         # Format test cases nicely for the prompt
         formatted_tests = ""
@@ -101,7 +103,7 @@ function_code: |
         shared["function_code"] = exec_res
         
         # Print the implemented function
-        print(f"\n=== Implemented Function ===")
+        print("\n=== Implemented Function ===")
         print(exec_res)
 
 class RunTests(BatchNode):
@@ -111,8 +113,8 @@ class RunTests(BatchNode):
         # Return list of tuples (function_code, test_case)
         return [(function_code, test_case) for test_case in test_cases]
 
-    def exec(self, test_data):
-        function_code, test_case = test_data
+    def exec(self, prep_res):
+        function_code, test_case = prep_res
         output, error = execute_python(function_code, test_case["input"])
         
         if error:
@@ -133,17 +135,17 @@ class RunTests(BatchNode):
             "error": None if passed else f"Expected {test_case['expected']}, got {output}"
         }
 
-    def post(self, shared, prep_res, exec_res_list):
-        shared["test_results"] = exec_res_list
-        all_passed = all(result["passed"] for result in exec_res_list)
+    def post(self, shared, prep_res, exec_res):
+        shared["test_results"] = exec_res
+        all_passed = all(result["passed"] for result in exec_res)
         shared["iteration_count"] = shared.get("iteration_count", 0) + 1
         
         # Print test results
-        passed_count = len([r for r in exec_res_list if r["passed"]])
-        total_count = len(exec_res_list)
+        passed_count = len([r for r in exec_res if r["passed"]])
+        total_count = len(exec_res)
         print(f"\n=== Test Results: {passed_count}/{total_count} Passed ===")
         
-        failed_tests = [r for r in exec_res_list if not r["passed"]]
+        failed_tests = [r for r in exec_res if not r["passed"]]
         if failed_tests:
             print("Failed tests:")
             for i, result in enumerate(failed_tests, 1):
@@ -172,17 +174,17 @@ class Revise(Node):
             "failed_tests": failed_tests
         }
 
-    def exec(self, inputs):
+    def exec(self, prep_res):
         # Format current test cases nicely
         formatted_tests = ""
-        for i, test in enumerate(inputs['test_cases'], 1):
+        for i, test in enumerate(prep_res['test_cases'], 1):
             formatted_tests += f"{i}. {test['name']}\n"
             formatted_tests += f"   input: {test['input']}\n"
             formatted_tests += f"   expected: {test['expected']}\n\n"
         
         # Format failed tests nicely
         formatted_failures = ""
-        for i, result in enumerate(inputs['failed_tests'], 1):
+        for i, result in enumerate(prep_res['failed_tests'], 1):
             test_case = result['test_case']
             formatted_failures += f"{i}. {test_case['name']}:\n"
             if result['error']:
@@ -191,14 +193,14 @@ class Revise(Node):
                 formatted_failures += f"   output: {result['actual']}\n"
             formatted_failures += f"   expected: {result['expected']}\n\n"
 
-        prompt = f"""Problem: {inputs['problem']}
+        prompt = f"""Problem: {prep_res['problem']}
 
 Current test cases:
 {formatted_tests}
 
 Current function:
 ```python
-{inputs['function_code']}
+{prep_res['function_code']}
 ```
 
 Failed tests:
