@@ -83,10 +83,10 @@ class AsyncHinter(AsyncNode):
             return None
         return shared["target_word"], shared["forbidden_words"], shared.get("past_guesses", [])
 
-    async def exec_async(self, inputs):
-        if inputs is None:
+    async def exec_async(self, prep_res):
+        if prep_res is None:
             return None
-        target, forbidden, past_guesses = inputs
+        target, forbidden, past_guesses = prep_res
         prompt = f"Generate hint for '{target}'\nForbidden words: {forbidden}"
         if past_guesses:
             prompt += f"\nPrevious wrong guesses: {past_guesses}\nMake hint more specific."
@@ -107,8 +107,8 @@ class AsyncGuesser(AsyncNode):
         hint = await shared["guesser_queue"].get()
         return hint, shared.get("past_guesses", [])
 
-    async def exec_async(self, inputs):
-        hint, past_guesses = inputs
+    async def exec_async(self, prep_res):
+        hint, past_guesses = prep_res
         prompt = f"Given hint: {hint}, past wrong guesses: {past_guesses}, make a new guess. Directly reply a single word:"
         guess = call_llm(prompt)
         print(f"Guesser: I guess it's - {guess}")

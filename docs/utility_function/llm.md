@@ -141,8 +141,8 @@ def call_llm(prompt, use_cache):
     return cached_call.__wrapped__(prompt)
 
 class SummarizeNode(Node):
-    def exec(self, text):
-        return call_llm(f"Summarize: {text}", self.cur_retry==0)
+    def exec(self, prep_res):
+        return call_llm(f"Summarize: {prep_res}", self.cur_retry==0)
 ```
 
 - Enable logging:

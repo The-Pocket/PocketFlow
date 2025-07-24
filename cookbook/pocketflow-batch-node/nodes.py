@@ -1,5 +1,7 @@
 import pandas as pd
+
 from pocketflow import BatchNode
+
 
 class CSVProcessor(BatchNode):
     """BatchNode that processes a large CSV file in chunks."""
@@ -21,7 +23,7 @@ class CSVProcessor(BatchNode):
         )
         return chunks
     
-    def exec(self, chunk):
+    def exec(self, prep_res):
         """Process a single chunk of the CSV.
         
         Args:
@@ -31,25 +33,25 @@ class CSVProcessor(BatchNode):
             dict: Statistics for this chunk
         """
         return {
-            "total_sales": chunk["amount"].sum(),
-            "num_transactions": len(chunk),
-            "total_amount": chunk["amount"].sum()
+            "total_sales": prep_res["amount"].sum(),
+            "num_transactions": len(prep_res),
+            "total_amount": prep_res["amount"].sum()
         }
     
-    def post(self, shared, prep_res, exec_res_list):
+    def post(self, shared, prep_res, exec_res):
         """Combine results from all chunks.
         
         Args:
             prep_res: Original chunks iterator
-            exec_res_list: List of results from each chunk
+            exec_res: List of results from each chunk
             
         Returns:
             str: Action to take next
         """
         # Combine statistics from all chunks
-        total_sales = sum(res["total_sales"] for res in exec_res_list)
-        total_transactions = sum(res["num_transactions"] for res in exec_res_list)
-        total_amount = sum(res["total_amount"] for res in exec_res_list)
+        total_sales = sum(res["total_sales"] for res in exec_res)
+        total_transactions = sum(res["num_transactions"] for res in exec_res)
+        total_amount = sum(res["total_amount"] for res in exec_res)
         
         # Calculate final statistics
         shared["statistics"] = {

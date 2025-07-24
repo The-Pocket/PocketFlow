@@ -27,8 +27,8 @@ class ParallelSummaries(AsyncParallelBatchNode):
         # e.g., multiple texts
         return shared["texts"]
 
-    async def exec_async(self, text):
-        prompt = f"Summarize: {text}"
+    async def exec_async(self, prep_res):
+        prompt = f"Summarize: {prep_res}"
         return await call_llm_async(prompt)
 
     async def post_async(self, shared, prep_res, exec_res_list):

@@ -177,7 +177,7 @@ my_project/
   from utils.call_llm import call_llm
 
   class GetQuestionNode(Node):
-      def exec(self, _):
+      def exec(self, prep_res):
           # Get question directly from user input
           user_question = input("Enter your question: ")
           return user_question
@@ -192,9 +192,9 @@ my_project/
           # Read question from shared
           return shared["question"]
       
-      def exec(self, question):
+      def exec(self, prep_res):
           # Call LLM to get the answer
-          return call_llm(question)
+          return call_llm(prep_res)
       
       def post(self, shared, prep_res, exec_res):
           # Store the answer in shared

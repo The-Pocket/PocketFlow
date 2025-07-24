@@ -1,10 +1,11 @@
-import unittest
 import asyncio
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import Node, AsyncNode, AsyncFlow
+from pocketflow import AsyncFlow, AsyncNode, Node
+
 
 class AsyncNumberNode(AsyncNode):
     """
@@ -16,13 +17,13 @@ class AsyncNumberNode(AsyncNode):
         super().__init__()
         self.number = number
 
-    async def prep_async(self, shared_storage):
+    async def prep_async(self, shared):
         # Synchronous work is allowed inside an AsyncNode,
         # but final 'condition' is determined by post_async().
-        shared_storage['current'] = self.number
+        shared['current'] = self.number
         return "set_number"
 
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared, prep_res, exec_res):
         # Possibly do asynchronous tasks here
         await asyncio.sleep(0.01)
         # Return a condition for the flow
@@ -32,11 +33,11 @@ class AsyncIncrementNode(AsyncNode):
     """
     Demonstrates incrementing the 'current' value asynchronously.
     """
-    async def prep_async(self, shared_storage):
-        shared_storage['current'] = shared_storage.get('current', 0) + 1
+    async def prep_async(self, shared):
+        shared['current'] = shared.get('current', 0) + 1
         return "incremented"
 
-    async def post_async(self, shared_storage, prep_result, proc_result):
+    async def post_async(self, shared, prep_res, exec_res):
         await asyncio.sleep(0.01)  # simulate async I/O
         return "done"
 
@@ -47,12 +48,12 @@ class AsyncSignalNode(AsyncNode):
         self.signal = signal
 
     # No prep needed usually if just signaling
-    async def prep_async(self, shared_storage):
+    async def prep_async(self, shared):
         await asyncio.sleep(0.01) # Simulate async work
 
-    async def post_async(self, shared_storage, prep_result, exec_result):
+    async def post_async(self, shared, prep_res, exec_res):
         # Store the signal in shared storage for verification
-        shared_storage['last_async_signal_emitted'] = self.signal
+        shared['last_async_signal_emitted'] = self.signal
         await asyncio.sleep(0.01) # Simulate async work
         print(self.signal)
         return self.signal # Return the specific action string
@@ -63,12 +64,12 @@ class AsyncPathNode(AsyncNode):
         super().__init__()
         self.path_id = path_id
 
-    async def prep_async(self, shared_storage):
+    async def prep_async(self, shared):
         await asyncio.sleep(0.01) # Simulate async work
-        shared_storage['async_path_taken'] = self.path_id
+        shared['async_path_taken'] = self.path_id
 
     # post_async implicitly returns None (for default transition out if needed)
-    async def post_async(self, shared_storage, prep_result, exec_result):
+    async def post_async(self, shared, prep_res, exec_res):
          await asyncio.sleep(0.01)
          # Return None by default
 
@@ -83,23 +84,23 @@ class TestAsyncNode(unittest.TestCase):
         """
         async def run_node():
             node = AsyncNumberNode(42)
-            shared_storage = {}
-            condition = await node.run_async(shared_storage)
-            return shared_storage, condition
+            shared = {}
+            condition = await node.run_async(shared)
+            return shared, condition
 
-        shared_storage, condition = asyncio.run(run_node())
-        self.assertEqual(shared_storage['current'], 42)
+        shared, condition = asyncio.run(run_node())
+        self.assertEqual(shared['current'], 42)
         self.assertEqual(condition, "number_set")
 
     def test_async_increment_node_direct_call(self):
         async def run_node():
             node = AsyncIncrementNode()
-            shared_storage = {'current': 10}
-            condition = await node.run_async(shared_storage)
-            return shared_storage, condition
+            shared = {'current': 10}
+            condition = await node.run_async(shared)
+            return shared, condition
 
-        shared_storage, condition = asyncio.run(run_node())
-        self.assertEqual(shared_storage['current'], 11)
+        shared, condition = asyncio.run(run_node())
+        self.assertEqual(shared['current'], 11)
         self.assertEqual(condition, "done")
 
 
@@ -125,10 +126,10 @@ class TestAsyncFlow(unittest.TestCase):
         flow = AsyncFlow(start)
 
         # We'll run the flow synchronously (which under the hood is asyncio.run())
-        shared_storage = {}
-        asyncio.run(flow.run_async(shared_storage))
+        shared = {}
+        asyncio.run(flow.run_async(shared))
 
-        self.assertEqual(shared_storage['current'], 6)
+        self.assertEqual(shared['current'], 6)
 
     def test_async_flow_branching(self):
         """
@@ -139,30 +140,30 @@ class TestAsyncFlow(unittest.TestCase):
         """
 
         class BranchingAsyncNode(AsyncNode):
-            def exec(self, data):
-                value = shared_storage.get("value", 0)
-                shared_storage["value"] = value
+            def exec(self, prep_res):
+                value = shared.get("value", 0)
+                shared["value"] = value
                 # We'll decide branch based on whether 'value' is positive
                 return None
 
-            async def post_async(self, shared_storage, prep_result, proc_result):
+            async def post_async(self, shared, prep_res, exec_res):
                 await asyncio.sleep(0.01)
-                if shared_storage["value"] >= 0:
+                if shared["value"] >= 0:
                     return "positive_branch"
                 else:
                     return "negative_branch"
 
         class PositiveNode(Node):
-            def exec(self, data):
-                shared_storage["path"] = "positive"
+            def exec(self, prep_res):
+                shared["path"] = "positive"
                 return None
 
         class NegativeNode(Node):
-            def exec(self, data):
-                shared_storage["path"] = "negative"
+            def exec(self, prep_res):
+                shared["path"] = "negative"
                 return None
 
-        shared_storage = {"value": 10}
+        shared = {"value": 10}
 
         start = BranchingAsyncNode()
         positive_node = PositiveNode()
@@ -173,9 +174,9 @@ class TestAsyncFlow(unittest.TestCase):
         start - "negative_branch" >> negative_node
 
         flow = AsyncFlow(start)
-        asyncio.run(flow.run_async(shared_storage))
+        asyncio.run(flow.run_async(shared))
 
-        self.assertEqual(shared_storage["path"], "positive", 
+        self.assertEqual(shared["path"], "positive", 
                          "Should have taken the positive branch")
 
     def test_async_composition_with_action_propagation(self):
@@ -183,7 +184,7 @@ class TestAsyncFlow(unittest.TestCase):
         Test AsyncFlow branches based on action from nested AsyncFlow's last node.
         """
         async def run_test():
-            shared_storage = {}
+            shared = {}
 
             # 1. Define an inner async flow ending with AsyncSignalNode
             # Use existing AsyncNumberNode which should return None from post_async implicitly
@@ -206,20 +207,20 @@ class TestAsyncFlow(unittest.TestCase):
 
             # 5. Run the outer async flow and capture the last action
             # Execution: inner_start -> inner_end -> path_b
-            last_action_outer = await outer_flow.run_async(shared_storage)
+            last_action_outer = await outer_flow.run_async(shared)
 
             # 6. Return results for assertion
-            return shared_storage, last_action_outer
+            return shared, last_action_outer
 
         # Run the async test function
-        shared_storage, last_action_outer = asyncio.run(run_test())
+        shared, last_action_outer = asyncio.run(run_test())
 
         # 7. Assert the results
         # Check state after inner flow execution
-        self.assertEqual(shared_storage.get('current'), 200) # From AsyncNumberNode
-        self.assertEqual(shared_storage.get('last_async_signal_emitted'), "async_inner_done")
+        self.assertEqual(shared.get('current'), 200) # From AsyncNumberNode
+        self.assertEqual(shared.get('last_async_signal_emitted'), "async_inner_done")
         # Check that the correct outer path was taken
-        self.assertEqual(shared_storage.get('async_path_taken'), "AsyncB")
+        self.assertEqual(shared.get('async_path_taken'), "AsyncB")
         # Check the action returned by the outer flow. The last node executed was
         # path_b_node, which returns None from its post_async method.
         self.assertIsNone(last_action_outer)

@@ -1,8 +1,10 @@
 # nodes.py
 
-from pocketflow import Node
 import yaml
+
+from pocketflow import Node
 from utils import call_llm
+
 
 class ThinkNode(Node):
     def prep(self, shared):
@@ -92,9 +94,9 @@ class ActionNode(Node):
         action_input = shared["current_action_input"]
         return action, action_input
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Execute action and return result"""
-        action, action_input = inputs
+        action, action_input = prep_res
         
         print(f"🚀 Executing action: {action}, input: {action_input}")
         
@@ -118,7 +120,7 @@ class ActionNode(Node):
         """Save action result"""
         # Save the current action result
         shared["current_action_result"] = exec_res
-        print(f"✅ Action completed, result obtained")
+        print("✅ Action completed, result obtained")
         
         # Continue to observation node
         return "observe"
@@ -143,9 +145,9 @@ class ObserveNode(Node):
         action_result = shared["current_action_result"]
         return action, action_input, action_result
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Analyze action results, generate observation"""
-        action, action_input, action_result = inputs
+        action, action_input, action_result = prep_res
         
         # Build prompt
         prompt = f"""

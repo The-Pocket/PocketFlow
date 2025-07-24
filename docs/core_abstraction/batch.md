@@ -31,8 +31,8 @@ class MapSummaries(BatchNode):
         chunks = [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
         return chunks
 
-    def exec(self, chunk):
-        prompt = f"Summarize this chunk in 10 words: {chunk}"
+    def exec(self, prep_res):
+        prompt = f"Summarize this chunk in 10 words: {prep_res}"
         summary = call_llm(prompt)
         return summary
 
@@ -77,8 +77,8 @@ class LoadFile(Node):
         filename = self.params["filename"]  # Important! Use self.params, not shared
         return filename
         
-    def exec(self, filename):
-        with open(filename, 'r') as f:
+    def exec(self, prep_res):
+        with open(prep_res, 'r') as f:
             return f.read()
             
     def post(self, shared, prep_res, exec_res):
@@ -91,8 +91,8 @@ class Summarize(Node):
     def prep(self, shared):
         return shared["current_file_content"]
         
-    def exec(self, content):
-        prompt = f"Summarize this file in 50 words: {content}"
+    def exec(self, prep_res):
+        prompt = f"Summarize this file in 50 words: {prep_res}"
         return call_llm(prompt)
         
     def post(self, shared, prep_res, exec_res):
@@ -156,9 +156,9 @@ class ProcessFile(Node):
         full_path = os.path.join(directory, filename)
         return full_path
         
-    def exec(self, full_path):
+    def exec(self, prep_res):
         # Process the file...
-        return f"Processed {full_path}"
+        return f"Processed {prep_res}"
         
     def post(self, shared, prep_res, exec_res):
         # Store results, perhaps indexed by path

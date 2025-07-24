@@ -76,8 +76,8 @@ class DecideAction(Node):
         query = shared["query"]
         return query, context
         
-    def exec(self, inputs):
-        query, context = inputs
+    def exec(self, prep_res):
+        query, context = prep_res
         prompt = f"""
 Given input: {query}
 Previous search results: {context}
@@ -110,8 +110,8 @@ class SearchWeb(Node):
     def prep(self, shared):
         return shared["search_term"]
         
-    def exec(self, search_term):
-        return search_web(search_term)
+    def exec(self, prep_res):
+        return search_web(prep_res)
     
     def post(self, shared, prep_res, exec_res):
         prev_searches = shared.get("context", [])
@@ -124,8 +124,8 @@ class DirectAnswer(Node):
     def prep(self, shared):
         return shared["query"], shared.get("context", "")
         
-    def exec(self, inputs):
-        query, context = inputs
+    def exec(self, prep_res):
+        query, context = prep_res
         return call_llm(f"Context: {context}\nAnswer: {query}")
 
     def post(self, shared, prep_res, exec_res):

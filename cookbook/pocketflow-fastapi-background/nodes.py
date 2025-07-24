@@ -1,14 +1,16 @@
 import yaml
-from pocketflow import Node, BatchNode
+
+from pocketflow import BatchNode, Node
 from utils.call_llm import call_llm
+
 
 class GenerateOutline(Node):
     def prep(self, shared):
         return shared["topic"]
     
-    def exec(self, topic):
+    def exec(self, prep_res):
         prompt = f"""
-Create a simple outline for an article about {topic}.
+Create a simple outline for an article about {prep_res}.
 Include at most 3 main sections (no subsections).
 
 Output the sections in YAML format as shown below:
@@ -41,11 +43,11 @@ class WriteContent(BatchNode):
         self.sse_queue = shared["sse_queue"]
         return self.sections
     
-    def exec(self, section):
+    def exec(self, prep_res):
         prompt = f"""
 Write a short paragraph (MAXIMUM 100 WORDS) about this section:
 
-{section}
+{prep_res}
 
 Requirements:
 - Explain the idea in simple, easy-to-understand terms
@@ -56,7 +58,7 @@ Requirements:
         content = call_llm(prompt)
         
         # Send progress update for this section
-        current_section_index = self.sections.index(section) if section in self.sections else 0
+        current_section_index = self.sections.index(prep_res) if prep_res in self.sections else 0
         total_sections = len(self.sections)
         
         # Progress from 33% (after outline) to 66% (before styling)
@@ -67,17 +69,17 @@ Requirements:
             "step": "content", 
             "progress": section_progress, 
             "data": {
-                "section": section,
+                "section": prep_res,
                 "completed_sections": current_section_index + 1,
                 "total_sections": total_sections
             }
         }
         self.sse_queue.put_nowait(progress_msg)
         
-        return f"## {section}\n\n{content}\n"
+        return f"## {prep_res}\n\n{content}\n"
     
-    def post(self, shared, prep_res, exec_res_list):
-        draft = "\n".join(exec_res_list)
+    def post(self, shared, prep_res, exec_res):
+        draft = "\n".join(exec_res)
         shared["draft"] = draft
         return "default"
 
@@ -85,11 +87,11 @@ class ApplyStyle(Node):
     def prep(self, shared):
         return shared["draft"]
     
-    def exec(self, draft):
+    def exec(self, prep_res):
         prompt = f"""
 Rewrite the following draft in a conversational, engaging style:
 
-{draft}
+{prep_res}
 
 Make it:
 - Conversational and warm in tone

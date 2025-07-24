@@ -1,7 +1,9 @@
-from pocketflow import Node, Flow, BatchNode
-import numpy as np
 import faiss
-from utils import call_llm, get_embedding, fixed_size_chunk
+import numpy as np
+
+from pocketflow import BatchNode, Node
+from utils import call_llm, fixed_size_chunk, get_embedding
+
 
 # Nodes for the offline flow
 class ChunkDocumentsNode(BatchNode):
@@ -9,15 +11,15 @@ class ChunkDocumentsNode(BatchNode):
         """Read texts from shared store"""
         return shared["texts"]
     
-    def exec(self, text):
+    def exec(self, prep_res):
         """Chunk a single text into smaller pieces"""
-        return fixed_size_chunk(text)
+        return fixed_size_chunk(prep_res)
     
-    def post(self, shared, prep_res, exec_res_list):
+    def post(self, shared, prep_res, exec_res):
         """Store chunked texts in the shared store"""
         # Flatten the list of lists into a single list of chunks
         all_chunks = []
-        for chunks in exec_res_list:
+        for chunks in exec_res:
             all_chunks.extend(chunks)
         
         # Replace the original texts with the flat list of chunks
@@ -31,13 +33,13 @@ class EmbedDocumentsNode(BatchNode):
         """Read texts from shared store and return as an iterable"""
         return shared["texts"]
     
-    def exec(self, text):
+    def exec(self, prep_res):
         """Embed a single text"""
-        return get_embedding(text)
+        return get_embedding(prep_res)
     
-    def post(self, shared, prep_res, exec_res_list):
+    def post(self, shared, prep_res, exec_res):
         """Store embeddings in the shared store"""
-        embeddings = np.array(exec_res_list, dtype=np.float32)
+        embeddings = np.array(exec_res, dtype=np.float32)
         shared["embeddings"] = embeddings
         print(f"✅ Created {len(embeddings)} document embeddings")
         return "default"
@@ -47,16 +49,16 @@ class CreateIndexNode(Node):
         """Get embeddings from shared store"""
         return shared["embeddings"]
     
-    def exec(self, embeddings):
+    def exec(self, prep_res):
         """Create FAISS index and add embeddings"""
         print("🔍 Creating search index...")
-        dimension = embeddings.shape[1]
+        dimension = prep_res.shape[1]
         
         # Create a flat L2 index
         index = faiss.IndexFlatL2(dimension)
         
         # Add the embeddings to the index
-        index.add(embeddings)
+        index.add(prep_res)
         
         return index
     
@@ -72,10 +74,10 @@ class EmbedQueryNode(Node):
         """Get query from shared store"""
         return shared["query"]
     
-    def exec(self, query):
+    def exec(self, prep_res):
         """Embed the query"""
-        print(f"🔍 Embedding query: {query}")
-        query_embedding = get_embedding(query)
+        print(f"🔍 Embedding query: {prep_res}")
+        query_embedding = get_embedding(prep_res)
         return np.array([query_embedding], dtype=np.float32)
     
     def post(self, shared, prep_res, exec_res):
@@ -88,10 +90,10 @@ class RetrieveDocumentNode(Node):
         """Get query embedding, index, and texts from shared store"""
         return shared["query_embedding"], shared["index"], shared["texts"]
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Search the index for similar documents"""
         print("🔎 Searching for relevant documents...")
-        query_embedding, index, texts = inputs
+        query_embedding, index, texts = prep_res
         
         # Search for the most similar document
         distances, indices = index.search(query_embedding, k=1)
@@ -121,9 +123,9 @@ class GenerateAnswerNode(Node):
         """Get query, retrieved document, and any other context needed"""
         return shared["query"], shared["retrieved_document"]
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Generate an answer using the LLM"""
-        query, retrieved_doc = inputs
+        query, retrieved_doc = prep_res
         
         prompt = f"""
 Briefly answer the following question based on the context provided:

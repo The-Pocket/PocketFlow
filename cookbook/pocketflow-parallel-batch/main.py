@@ -1,6 +1,7 @@
 import asyncio
-import time
 import os
+import time
+
 from pocketflow import AsyncFlow, AsyncParallelBatchNode
 from utils import call_llm
 
@@ -14,9 +15,9 @@ class TranslateTextNodeParallel(AsyncParallelBatchNode):
         languages = shared.get("languages", [])
         return [(text, lang) for lang in languages]
 
-    async def exec_async(self, data_tuple):
+    async def exec_async(self, prep_res):
         """Calls the async LLM utility for each target language."""
-        text, language = data_tuple
+        text, language = prep_res
         
         prompt = f"""
 Please translate the following markdown file into {language}. 
