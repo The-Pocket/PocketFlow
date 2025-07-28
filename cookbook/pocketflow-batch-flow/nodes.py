@@ -1,19 +1,22 @@
 """Node implementations for image processing."""
 
 import os
+
 from PIL import Image, ImageEnhance, ImageFilter
+
 from pocketflow import Node
+
 
 class LoadImage(Node):
     """Node that loads an image file."""
     
     def prep(self, shared):
         """Get image path from parameters."""
-        return os.path.join("images", self.params["input"])
+        return os.path.join("images", str(self.params["input"]))
     
-    def exec(self, image_path):
+    def exec(self, prep_res):
         """Load the image using PIL."""
-        return Image.open(image_path)
+        return Image.open(prep_res)
     
     def post(self, shared, prep_res, exec_res):
         """Store the image in shared store."""
@@ -27,9 +30,9 @@ class ApplyFilter(Node):
         """Get image and filter type."""
         return shared["image"], self.params["filter"]
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Apply the specified filter."""
-        image, filter_type = inputs
+        image, filter_type = prep_res
         
         if filter_type == "grayscale":
             return image.convert("L")
@@ -58,15 +61,15 @@ class SaveImage(Node):
         os.makedirs("output", exist_ok=True)
         
         # Generate output filename
-        input_name = os.path.splitext(self.params["input"])[0]
+        input_name = os.path.splitext(str(self.params["input"]))[0]
         filter_name = self.params["filter"]
         output_path = os.path.join("output", f"{input_name}_{filter_name}.jpg")
         
         return shared["filtered_image"], output_path
     
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Save the image to file."""
-        image, output_path = inputs
+        image, output_path = prep_res
         image.save(output_path, "JPEG")
         return output_path
     

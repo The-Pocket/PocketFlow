@@ -10,10 +10,10 @@ class MajorityVoteNode(BatchNode):
         attempts_count = shared.get("num_tries", 3)
         return [question for _ in range(attempts_count)]
 
-    def exec(self, single_question: str):
+    def exec(self, prep_res: str):
         prompt = f"""
 You are a helpful assistant. Please answer the user's question below.
-Question: {single_question}
+Question: {prep_res}
 
 Return strictly using the following YAML structure:
 ```yaml

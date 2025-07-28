@@ -1,9 +1,12 @@
 """AsyncNode implementations for image processing."""
-import os
 import asyncio
-from PIL import Image, ImageFilter
+import os
+
 import numpy as np
+from PIL import Image, ImageFilter
+
 from pocketflow import AsyncNode
+
 
 class LoadImage(AsyncNode):
     """Node that loads an image from file."""
@@ -13,11 +16,11 @@ class LoadImage(AsyncNode):
         print(f"Loading image: {image_path}")
         return image_path
     
-    async def exec_async(self, image_path):
+    async def exec_async(self, prep_res):
         """Load image using PIL."""
         # Simulate I/O delay
         await asyncio.sleep(0.5)
-        return Image.open(image_path)
+        return Image.open(prep_res)
     
     async def post_async(self, shared, prep_res, exec_res):
         """Store image in shared store."""
@@ -33,9 +36,9 @@ class ApplyFilter(AsyncNode):
         print(f"Applying {filter_type} filter...")
         return image, filter_type
     
-    async def exec_async(self, inputs):
+    async def exec_async(self, prep_res):
         """Apply the specified filter."""
-        image, filter_type = inputs
+        image, filter_type = prep_res
         
         # Simulate processing delay
         await asyncio.sleep(0.5)
@@ -68,7 +71,7 @@ class SaveImage(AsyncNode):
     async def prep_async(self, shared):
         """Prepare output path."""
         image = shared["filtered_image"]
-        base_name = os.path.splitext(os.path.basename(self.params["image_path"]))[0]
+        base_name = os.path.splitext(os.path.basename(str(self.params["image_path"])))[0]
         filter_type = self.params["filter"]
         output_path = f"output/{base_name}_{filter_type}.jpg"
         
@@ -77,9 +80,9 @@ class SaveImage(AsyncNode):
         
         return image, output_path
     
-    async def exec_async(self, inputs):
+    async def exec_async(self, prep_res):
         """Save the image."""
-        image, output_path = inputs
+        image, output_path = prep_res
         
         # Simulate I/O delay
         await asyncio.sleep(0.5)

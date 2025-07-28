@@ -1,6 +1,8 @@
+import yaml
+
 from pocketflow import Node
 from utils import call_llm, search_web_duckduckgo
-import yaml
+
 
 class DecideAction(Node):
     def prep(self, shared):
@@ -12,11 +14,11 @@ class DecideAction(Node):
         # Return both for the exec step
         return question, context
         
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Call the LLM to decide whether to search or answer."""
-        question, context = inputs
+        question, context = prep_res
         
-        print(f"🤔 Agent deciding what to do next...")
+        print("🤔 Agent deciding what to do next...")
         
         # Create a prompt to help the LLM decide what to do next with proper yaml formatting
         prompt = f"""
@@ -71,7 +73,7 @@ IMPORTANT: Make sure to:
             print(f"🔍 Agent decided to search for: {exec_res['search_query']}")
         else:
             shared["context"] = exec_res["answer"] #save the context if LLM gives the answer without searching.
-            print(f"💡 Agent decided to answer the question")
+            print("💡 Agent decided to answer the question")
         
         # Return the action to determine the next node in the flow
         return exec_res["action"]
@@ -81,11 +83,11 @@ class SearchWeb(Node):
         """Get the search query from the shared store."""
         return shared["search_query"]
         
-    def exec(self, search_query):
+    def exec(self, prep_res):
         """Search the web for the given query."""
         # Call the search utility function
-        print(f"🌐 Searching the web for: {search_query}")
-        results = search_web_duckduckgo(search_query)
+        print(f"🌐 Searching the web for: {prep_res}")
+        results = search_web_duckduckgo(prep_res)
         return results
     
     def post(self, shared, prep_res, exec_res):
@@ -94,7 +96,7 @@ class SearchWeb(Node):
         previous = shared.get("context", "")
         shared["context"] = previous + "\n\nSEARCH: " + shared["search_query"] + "\nRESULTS: " + exec_res
         
-        print(f"📚 Found information, analyzing results...")
+        print("📚 Found information, analyzing results...")
         
         # Always go back to the decision node after searching
         return "decide"
@@ -104,11 +106,11 @@ class AnswerQuestion(Node):
         """Get the question and context for answering."""
         return shared["question"], shared.get("context", "")
         
-    def exec(self, inputs):
+    def exec(self, prep_res):
         """Call the LLM to generate a final answer."""
-        question, context = inputs
+        question, context = prep_res
         
-        print(f"✍️ Crafting final answer...")
+        print("✍️ Crafting final answer...")
         
         # Create a prompt for the LLM to answer the question
         prompt = f"""
@@ -129,7 +131,7 @@ Provide a comprehensive answer using the research results.
         # Save the answer in the shared store
         shared["answer"] = exec_res
         
-        print(f"✅ Answer generated successfully")
+        print("✅ Answer generated successfully")
         
         # We're done - no need to continue the flow
         return "done" 

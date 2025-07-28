@@ -1,5 +1,6 @@
-from pocketflow import Node, Flow
+from pocketflow import Flow, Node
 from utils import call_llm
+
 
 class ChatNode(Node):
     def prep(self, shared):
@@ -21,12 +22,12 @@ class ChatNode(Node):
         # Return all messages for the LLM
         return shared["messages"]
 
-    def exec(self, messages):
-        if messages is None:
+    def exec(self, prep_res):
+        if prep_res is None:
             return None
         
         # Call LLM with the entire conversation history
-        response = call_llm(messages)
+        response = call_llm(prep_res)
         return response
 
     def post(self, shared, prep_res, exec_res):

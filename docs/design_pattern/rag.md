@@ -30,9 +30,9 @@ class ChunkDocs(BatchNode):
         # A list of file paths in shared["files"]. We process each file.
         return shared["files"]
 
-    def exec(self, filepath):
+    def exec(self, prep_res):
         # read file content. In real usage, do error handling.
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(prep_res, "r", encoding="utf-8") as f:
             text = f.read()
         # chunk by 100 chars each
         chunks = []
@@ -53,8 +53,8 @@ class EmbedDocs(BatchNode):
     def prep(self, shared):
         return shared["all_chunks"]
 
-    def exec(self, chunk):
-        return get_embedding(chunk)
+    def exec(self, prep_res):
+        return get_embedding(prep_res)
 
     def post(self, shared, prep_res, exec_res_list):
         # Store the list of embeddings.
@@ -66,13 +66,13 @@ class StoreIndex(Node):
         # We'll read all embeds from shared.
         return shared["all_embeds"]
 
-    def exec(self, all_embeds):
+    def exec(self, prep_res):
         # Create a vector index (faiss or other DB in real usage).
-        index = create_index(all_embeds)
+        index = create_index(prep_res)
         return index
 
-    def post(self, shared, prep_res, index):
-        shared["index"] = index
+    def post(self, shared, prep_res, exec_res):
+        shared["index"] = exec_res
 
 # Wire them in sequence
 chunk_node = ChunkDocs()
@@ -106,40 +106,40 @@ class EmbedQuery(Node):
     def prep(self, shared):
         return shared["question"]
 
-    def exec(self, question):
-        return get_embedding(question)
+    def exec(self, prep_res):
+        return get_embedding(prep_res)
 
-    def post(self, shared, prep_res, q_emb):
-        shared["q_emb"] = q_emb
+    def post(self, shared, prep_res, exec_res):
+        shared["q_emb"] = exec_res
 
 class RetrieveDocs(Node):
     def prep(self, shared):
         # We'll need the query embedding, plus the offline index/chunks
         return shared["q_emb"], shared["index"], shared["all_chunks"]
 
-    def exec(self, inputs):
-        q_emb, index, chunks = inputs
+    def exec(self, prep_res):
+        q_emb, index, chunks = prep_res
         I, D = search_index(index, q_emb, top_k=1)
         best_id = I[0][0]
         relevant_chunk = chunks[best_id]
         return relevant_chunk
 
-    def post(self, shared, prep_res, relevant_chunk):
-        shared["retrieved_chunk"] = relevant_chunk
-        print("Retrieved chunk:", relevant_chunk[:60], "...")
+    def post(self, shared, prep_res, exec_res):
+        shared["retrieved_chunk"] = exec_res
+        print("Retrieved chunk:", exec_res[:60], "...")
 
 class GenerateAnswer(Node):
     def prep(self, shared):
         return shared["question"], shared["retrieved_chunk"]
 
-    def exec(self, inputs):
-        question, chunk = inputs
+    def exec(self, prep_res):
+        question, chunk = prep_res
         prompt = f"Question: {question}\nContext: {chunk}\nAnswer:"
         return call_llm(prompt)
 
-    def post(self, shared, prep_res, answer):
-        shared["answer"] = answer
-        print("Answer:", answer)
+    def post(self, shared, prep_res, exec_res):
+        shared["answer"] = exec_res
+        print("Answer:", exec_res)
 
 embed_qnode = EmbedQuery()
 retrieve_node = RetrieveDocs()

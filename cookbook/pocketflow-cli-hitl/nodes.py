@@ -1,12 +1,13 @@
 from pocketflow import Node
 from utils.call_llm import call_llm
 
+
 class GetTopicNode(Node):
     """Prompts the user to enter the topic for the joke."""
-    def exec(self, _shared):
+    def exec(self, prep_res):
         return input("What topic would you like a joke about? ")
 
-    def post(self, shared, _prep_res, exec_res):
+    def post(self, shared, prep_res, exec_res):
         shared["topic"] = exec_res
 
 class GenerateJokeNode(Node):
@@ -24,20 +25,20 @@ class GenerateJokeNode(Node):
     def exec(self, prep_res):
         return call_llm(prep_res)
 
-    def post(self, shared, _prep_res, exec_res):
+    def post(self, shared, prep_res, exec_res):
         shared["current_joke"] = exec_res
         print(f"\nJoke: {exec_res}")
 
 class GetFeedbackNode(Node):
     """Presents the joke to the user and asks for approval."""
-    def exec(self, _prep_res):
+    def exec(self, prep_res):
         while True:
             feedback = input("Did you like this joke? (yes/no): ").strip().lower()
             if feedback in ["yes", "y", "no", "n"]:
                 return feedback
             print("Invalid input. Please type 'yes' or 'no'.")
 
-    def post(self, shared, _prep_res, exec_res):
+    def post(self, shared, prep_res, exec_res):
         if exec_res in ["yes", "y"]:
             shared["user_feedback"] = "approve"
             print("Great! Glad you liked it.")

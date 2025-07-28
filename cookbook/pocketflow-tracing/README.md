@@ -49,8 +49,8 @@ class MyNode(Node):
     def prep(self, shared):
         return shared["input"]
     
-    def exec(self, data):
-        return f"Processed: {data}"
+    def exec(self, prep_res):
+        return f"Processed: {prep_res}"
     
     def post(self, shared, prep_res, exec_res):
         shared["output"] = exec_res

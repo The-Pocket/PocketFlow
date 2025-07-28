@@ -1,7 +1,8 @@
 import json
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from flow import create_streaming_chat_flow
 
 app = FastAPI()
@@ -16,7 +17,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     
     # Initialize conversation history for this connection
-    shared_store = {
+    shared_storage = {
         "websocket": websocket,
         "conversation_history": []
     }
@@ -27,10 +28,10 @@ async def websocket_endpoint(websocket: WebSocket):
             message = json.loads(data)
             
             # Update only the current message, keep conversation history
-            shared_store["user_message"] = message.get("content", "")
+            shared_storage["user_message"] = message.get("content", "")
             
             flow = create_streaming_chat_flow()
-            await flow.run_async(shared_store)
+            await flow.run_async(shared_storage)
             
     except WebSocketDisconnect:
         pass
