@@ -27,10 +27,11 @@ Agentic Coding should be a collaboration between Human System Design and Agent I
 | 1. Requirements | ★★★ High  | ★☆☆ Low   | Humans understand the requirements and context.                    |
 | 2. Flow          | ★★☆ Medium | ★★☆ Medium |  Humans specify the high-level design, and the AI fills in the details. |
 | 3. Utilities   | ★★☆ Medium | ★★☆ Medium | Humans provide available external APIs and integrations, and the AI helps with implementation. |
-| 4. Node          | ★☆☆ Low   | ★★★ High  | The AI helps design the node types and data handling based on the flow.          |
-| 5. Implementation      | ★☆☆ Low   | ★★★ High  |  The AI implements the flow based on the design. |
-| 6. Optimization        | ★★☆ Medium | ★★☆ Medium | Humans evaluate the results, and the AI helps optimize. |
-| 7. Reliability         | ★☆☆ Low   | ★★★ High  |  The AI writes test cases and addresses corner cases.     |
+| 4. Data          | ★☆☆ Low    | ★★★ High   | AI designs the data schema, and humans verify.                            |
+| 5. Node          | ★☆☆ Low   | ★★★ High  | The AI helps design the node based on the flow.          |
+| 6. Implementation      | ★☆☆ Low   | ★★★ High  |  The AI implements the flow based on the design. |
+| 7. Optimization        | ★★☆ Medium | ★★☆ Medium | Humans evaluate the results, and the AI helps optimize. |
+| 8. Reliability         | ★☆☆ Low   | ★★★ High  |  The AI writes test cases and addresses corner cases.     |
 
 1. **Requirements**: Clarify the requirements for your project, and evaluate whether an AI system is a good fit. 
     - Understand AI systems' strengths and limitations:
@@ -97,9 +98,11 @@ Agentic Coding should be a collaboration between Human System Design and Agent I
       ```
     - > **Sometimes, design Utilities before Flow:**  For example, for an LLM project to automate a legacy system, the bottleneck will likely be the available interface to that system. Start by designing the hardest utilities for interfacing, and then build the flow around them.
       {: .best-practice }
+    - > **Avoid Exception Handling in Utilities**: If a utility function is called from a Node's `exec()` method, avoid using `try...except` blocks within the utility. Let the Node's built-in retry mechanism handle failures.
+      {: .warning }
 
-4. **Node Design**: Plan how each node will read and write data, and use utility functions.
-   - One core design principle for PocketFlow is to use a [shared store], so start with a shared store design:
+4. **Data Design**: Design the shared store that nodes will use to communicate.
+   - One core design principle for PocketFlow is to use a well-designed [shared store]—a data contract that all nodes agree upon to retrieve and store data.
       - For simple systems, use an in-memory dictionary.
       - For more complex systems or when persistence is required, use a database.
       - **Don't Repeat Yourself**: Use in-memory references or foreign keys.
@@ -116,16 +119,18 @@ Agentic Coding should be a collaboration between Human System Design and Agent I
             "results": {}                   # Empty dict to store outputs
         }
         ```
+
+5. **Node Design**: Plan how each node will read and write data, and use utility functions.
    - For each [Node], describe its type, how it reads and writes data, and which utility function it uses. Keep it specific but high-level without codes. For example:
      - `type`: Regular (or Batch, or Async)
      - `prep`: Read "text" from the shared store
-     - `exec`: Call the embedding utility function
+     - `exec`: Call the embedding utility function. **Avoid exception handling here**; let the Node's retry mechanism manage failures.
      - `post`: Write "embedding" to the shared store
 
-5. **Implementation**: Implement the initial nodes and flows based on the design.
+6. **Implementation**: Implement the initial nodes and flows based on the design.
    - 🎉 If you've reached this step, humans have finished the design. Now *Agentic Coding* begins!
    - **"Keep it simple, stupid!"** Avoid complex features and full-scale type checking.
-   - **FAIL FAST**! Avoid `try` logic so you can quickly identify any weak points in the system.
+   - **FAIL FAST**! Leverage the built-in [Node] retry and fallback mechanisms to handle failures gracefully. This helps you quickly identify weak points in the system.
    - Add logging throughout the code to facilitate debugging.
 
 7. **Optimization**:

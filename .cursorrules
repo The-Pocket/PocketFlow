@@ -156,10 +156,119 @@ my_project/
     └── design.md
 ```
 
+- **`requirements.txt`**: Lists the Python dependencies for the project.
+  ```
+  PyYAML
+  pocketflow
+  ```
+
 - **`docs/design.md`**: Contains project documentation for each step above. This should be *high-level* and *no-code*.
+  ~~~
+  # Design Doc: Your Project Name
+
+  > Please DON'T remove notes for AI
+
+  ## Requirements
+
+  > Notes for AI: Keep it simple and clear.
+  > If the requirements are abstract, write concrete user stories
+
+
+  ## Flow Design
+
+  > Notes for AI:
+  > 1. Consider the design patterns of agent, map-reduce, rag, and workflow. Apply them if they fit.
+  > 2. Present a concise, high-level description of the workflow.
+
+  ### Applicable Design Pattern:
+
+  1. Map the file summary into chunks, then reduce these chunks into a final summary.
+  2. Agentic file finder
+    - *Context*: The entire summary of the file
+    - *Action*: Find the file
+
+  ### Flow high-level Design:
+
+  1. **First Node**: This node is for ...
+  2. **Second Node**: This node is for ...
+  3. **Third Node**: This node is for ...
+
+  ```mermaid
+  flowchart TD
+      firstNode[First Node] --> secondNode[Second Node]
+      secondNode --> thirdNode[Third Node]
+  ```
+  ## Utility Functions
+
+  > Notes for AI:
+  > 1. Understand the utility function definition thoroughly by reviewing the doc.
+  > 2. Include only the necessary utility functions, based on nodes in the flow.
+
+  1. **Call LLM** (`utils/call_llm.py`)
+    - *Input*: prompt (str)
+    - *Output*: response (str)
+    - Generally used by most nodes for LLM tasks
+
+  2. **Embedding** (`utils/get_embedding.py`)
+    - *Input*: str
+    - *Output*: a vector of 3072 floats
+    - Used by the second node to embed text
+
+  ## Node Design
+
+  ### Shared Store
+
+  > Notes for AI: Try to minimize data redundancy
+
+  The shared store structure is organized as follows:
+
+  ```python
+  shared = {
+      "key": "value"
+  }
+  ```
+
+  ### Node Steps
+
+  > Notes for AI: Carefully decide whether to use Batch/Async Node/Flow.
+
+  1. First Node
+    - *Purpose*: Provide a short explanation of the node’s function
+    - *Type*: Decide between Regular, Batch, or Async
+    - *Steps*:
+      - *prep*: Read "key" from the shared store
+      - *exec*: Call the utility function
+      - *post*: Write "key" to the shared store
+
+  2. Second Node
+    ...
+  ~~~
+
+
 - **`utils/`**: Contains all utility functions.
   - It's recommended to dedicate one Python file to each API call, for example `call_llm.py` or `search_web.py`.
   - Each file should also include a `main()` function to try that API call
+  ```python
+  from google import genai
+  import os
+
+  def call_llm(prompt: str) -> str:
+      client = genai.Client(
+          api_key=os.getenv("GEMINI_API_KEY", ""),
+      )
+      model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+      response = client.models.generate_content(model=model, contents=[prompt])
+      return response.text
+
+  if __name__ == "__main__":
+      test_prompt = "Hello, how are you?"
+
+      # First call - should hit the API
+      print("Making call...")
+      response1 = call_llm(test_prompt, use_cache=False)
+      print(f"Response: {response1}")
+  ```
+
 - **`nodes.py`**: Contains all the node definitions.
   ```python
   # nodes.py
@@ -1559,24 +1668,25 @@ Here, we provide some minimal example implementations:
     def call_llm(prompt):
         from anthropic import Anthropic
         client = Anthropic(api_key="YOUR_API_KEY_HERE")
-        response = client.messages.create(
-            model="claude-2",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=100
+        r = client.messages.create(
+            model="claude-sonnet-4-0",
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.content
+        return r.content[0].text
     ```
 
 3. Google (Generative AI Studio / PaLM API)
     ```python
     def call_llm(prompt):
-        import google.generativeai as genai
-        genai.configure(api_key="YOUR_API_KEY_HERE")
-        response = genai.generate_text(
-            model="models/text-bison-001",
-            prompt=prompt
-        )
-        return response.result
+    from google import genai
+    client = genai.Client(api_key='GEMINI_API_KEY')
+        response = client.models.generate_content(
+        model='gemini-2.5-pro',
+        contents=prompt
+    )
+    return response.text
     ```
 
 4. Azure (Azure OpenAI)

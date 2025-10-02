@@ -62,10 +62,10 @@ class AsyncNode(Node):
     async def exec_fallback_async(self,prep_res,exc): raise exc
     async def post_async(self,shared,prep_res,exec_res): pass
     async def _exec(self,prep_res): 
-        for i in range(self.max_retries):
+        for self.cur_retry in range(self.max_retries):
             try: return await self.exec_async(prep_res)
             except Exception as e:
-                if i==self.max_retries-1: return await self.exec_fallback_async(prep_res,e)
+                if self.cur_retry==self.max_retries-1: return await self.exec_fallback_async(prep_res,e)
                 if self.wait>0: await asyncio.sleep(self.wait)
     async def run_async(self,shared): 
         if self.successors: warnings.warn("Node won't run successors. Use AsyncFlow.")  

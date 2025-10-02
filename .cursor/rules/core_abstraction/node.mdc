@@ -19,6 +19,7 @@ A **Node** is the smallest building block. Each Node has 3 steps `prep->exec->po
    - Examples: *(mostly) LLM calls, remote APIs, tool use*.
    - ⚠️ This shall be only for compute and **NOT** access `shared`.
    - ⚠️ If retries enabled, ensure idempotent implementation.
+   - ⚠️ Defer exception handling to the Node's built-in retry mechanism.
    - Return `exec_res`, which is passed to `post()`.
 
 3. `post(shared, prep_res, exec_res)`

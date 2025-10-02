@@ -33,8 +33,7 @@ Here, we provide some minimal example implementations:
         from anthropic import Anthropic
         client = Anthropic(api_key="YOUR_API_KEY_HERE")
         r = client.messages.create(
-            model="claude-3-7-sonnet-20250219",
-            max_tokens=3000,
+            model="claude-sonnet-4-0",
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -48,7 +47,7 @@ Here, we provide some minimal example implementations:
     from google import genai
     client = genai.Client(api_key='GEMINI_API_KEY')
         response = client.models.generate_content(
-        model='gemini-2.0-flash-001',
+        model='gemini-2.5-pro',
         contents=prompt
     )
     return response.text
