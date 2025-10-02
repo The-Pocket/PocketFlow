@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  duckduckgo-mcp:
+    image: ghcr.io/nickclyde/duckduckgo-mcp-server:latest
+    container_name: duckduckgo-mcp
+    command: uvicorn duckduckgo_mcp.server:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+
+  firecrawl-mcp:
+    image: ghcr.io/firecrawl/mcp-server:latest
+    container_name: firecrawl-mcp
+    command: uvicorn firecrawl_mcp.server:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+
+  pocketflow-mcp:
+    build: ./pocketflow-mcp
+    container_name: pocketflow-mcp
+    command: node build/index.js
+    ports:
+      - "8002:8002"
+
+  smolagents:
+    image: python:3.11-slim
+    container_name: smolagents
+    working_dir: /app
+    volumes:
+      - ./smolagents-app:/app
+    command: python run_agent.py
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - duckduckgo-mcp
+      - firecrawl-mcp
+      - pocketflow-mcp
