@@ -1,6 +1,7 @@
 from pocketflow import Node
 from utils import call_llm, search_web_duckduckgo
 import yaml
+import re
 
 class DecideAction(Node):
     def prep(self, shared):
@@ -44,22 +45,52 @@ Return your response in this format:
 thinking: |
     <your step-by-step reasoning process>
 action: search OR answer
-reason: <why you chose this action>
-answer: <if action is answer>
-search_query: <specific search query if action is search>
+reason: |
+    <why you chose this action - always use block scalar>
+answer: |
+    <if action is answer - always use block scalar, leave empty if searching>
+search_query: <specific search query if action is search (plain string)>
 ```
 IMPORTANT: Make sure to:
-1. Use proper indentation (4 spaces) for all multi-line fields
-2. Use the | character for multi-line text fields
-3. Keep single-line fields without the | character
+1. ALWAYS use the | block scalar for thinking, reason and answer so colons or quotes inside the text do not break YAML.
+2. Use proper indentation (4 spaces) for all multi-line fields under |.
+3. Keep search_query as a single line string without the | character.
 """
         
         # Call the LLM to make a decision
         response = call_llm(prompt)
         
         # Parse the response to get the decision
-        yaml_str = response.split("```yaml")[1].split("```")[0].strip()
-        decision = yaml.safe_load(yaml_str)
+        def extract_yaml_block(text):
+            """Extract YAML from a fenced code block, or fall back to the whole text."""
+            match = re.search(r"```yaml(.*?)```", text, re.DOTALL | re.IGNORECASE)
+            if match:
+                return match.group(1).strip()
+            return text.strip()
+
+        def parse_yaml_safely(block):
+            """Parse YAML, retrying with block scalars if colon characters caused issues."""
+            try:
+                return yaml.safe_load(block)
+            except yaml.YAMLError:
+                fixed_lines = []
+                for line in block.splitlines():
+                    if re.match(r"^(thinking|reason|answer|search_query):", line) and "|" not in line:
+                        key, _, val = line.partition(":")
+                        fixed_lines.append(f"{key}: |")
+                        val = val.strip()
+                        if val:
+                            fixed_lines.append(f"  {val}")
+                    else:
+                        fixed_lines.append(line)
+                fixed_block = "\n".join(fixed_lines)
+                try:
+                    return yaml.safe_load(fixed_block)
+                except yaml.YAMLError as exc:
+                    raise ValueError(f"Unable to parse LLM YAML response:\n{block}") from exc
+
+        yaml_str = extract_yaml_block(response)
+        decision = parse_yaml_safely(yaml_str)
         
         return decision
     
