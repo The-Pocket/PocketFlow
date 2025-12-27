@@ -25,7 +25,7 @@ Pocket Flow — это минималистичный фреймворк для 
 - Чтобы узнать больше, ознакомьтесь с [документацией](https://the-pocket.github.io/PocketFlow/). Чтобы понять мотивацию, прочитайте [историю](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just).
 - Есть вопросы? Спросите этого [ИИ-ассистента](https://chatgpt.com/g/g-677464af36588191b9eba4901946557b-pocket-flow-assistant) или [создайте issue!](https://github.com/The-Pocket/PocketFlow/issues/new)
 - 🎉 Присоединяйтесь к нашему [Discord](https://discord.gg/hUHHE9Sa6T), чтобы общаться с другими разработчиками, использующими Pocket Flow!
-- 🎉 Pocket Flow изначально написан на Python, но теперь у нас есть версии на [Typescript](https://github.com/The-Pocket/PocketFlow-Typescript), [Java](https://github.com/The-Pocket/PocketFlow-Java), [C++](https://github.com/The-Pocket/PocketFlow-CPP) и [Go](https://github.com/The-Pocket/PocketFlow-Go)!
+- 🎉 Pocket Flow изначально написан на Python, но теперь у нас есть версии на [Typescript](https://github.com/The-Pocket/PocketFlow-Typescript), [Java](https://github.com/The-Pocket/PocketFlow-Java), [C++](https://github.com/The-Pocket/PocketFlow-CPP), [Go](https://github.com/The-Pocket/PocketFlow-Go), [Rust](https://github.com/The-Pocket/PocketFlow-Rust), [PHP](https://github.com/The-Pocket/PocketFlow-PHP) и [Dart](https://github.com/rag-wtf/PocketFlow-Dart)!
 
 ## Почему Pocket Flow?
 
