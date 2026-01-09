@@ -1,0 +1,5 @@
+pocketflow>=0.0.1
+openai>=1.0.0
+fastmcp
+pyyaml
+numpy
