@@ -1,5 +1,5 @@
 pocketflow>=0.0.1
-duckduckgo-search>=7.5.2     # For web search
+ddgs>=9.10.0                 # For web search
 aiohttp>=3.8.0               # For HTTP requests
 openai>=1.0.0                # For LLM calls 
 requests>=2.25.1             # For HTTP requests
