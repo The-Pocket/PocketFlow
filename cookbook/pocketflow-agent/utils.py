@@ -1,6 +1,6 @@
 from openai import OpenAI
 import os
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 import requests
 
 def call_llm(prompt):    

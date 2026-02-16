@@ -1,7 +1,7 @@
 # For PocketFlow Agent Logic
 pocketflow>=0.0.1
 openai>=1.0.0
-duckduckgo-search>=7.5.2
+ddgs>=9.10.0
 pyyaml>=5.1
 
 # For A2A Server Infrastructure (from common)

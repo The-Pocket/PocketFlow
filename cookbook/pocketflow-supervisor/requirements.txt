@@ -1,4 +1,4 @@
 pocketflow>=0.0.1
-aiohttp>=3.8.0  # For async HTTP requests
-openai>=1.0.0   # For async LLM calls 
-duckduckgo-search>=7.5.2    # For web search
+aiohttp>=3.8.0    # For async HTTP requests
+openai>=1.0.0     # For async LLM calls 
+ddgs>=9.10.0      # For web search
