@@ -34,7 +34,7 @@ Current LLM frameworks are bloated... You only need 100 lines for LLM Framework!
   <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
 
 
-  |                | **Abstraction**          | **App-Specific Wrappers**                                      | **Vendor-Specific Wrappers**                                    | **Lines**       | **Size**    | **Core Mental Model** | **What It Gives You** |
+| | **Abstraction**| **App&#8209;Specific Wrappers**| **Vendor-Specific Wrappers** | **Lines** | **Size** | **Core Mental Model** | **What It Gives You** |
 |----------------|:-----------------------------: |:-----------------------------------------------------------:|:------------------------------------------------------------:|:---------------:|:----------------------------:|:------------------------------:|:------------------------------------------------------------------|
 | LangChain  | Agent, Chain               | Many <br><sup><sub>(e.g., QA, Summarization)</sub></sup>              | Many <br><sup><sub>(e.g., OpenAI, Pinecone, etc.)</sub></sup>                   | 405K          | +166MB                     | Chain + Agent Composition | Chains, Agents, and 100s of app/vendor integrations |
 | CrewAI     | Agent, Chain            | Many <br><sup><sub>(e.g., FileReadTool, SerperDevTool)</sub></sup>         | Many <br><sup><sub>(e.g., OpenAI, Anthropic, Pinecone, etc.)</sub></sup>        | 18K           | +173MB                     | Role-Playing Team | Agents (role/goal/backstory) + Manager assigns Tasks |
