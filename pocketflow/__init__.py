@@ -79,10 +79,10 @@ class AsyncNode(Node):
     def _run(self,shared): raise RuntimeError("Use run_async.")
 
 class AsyncBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items): return [await super(AsyncBatchNode,self)._exec(i) for i in items]
+    async def _exec(self,items): return [await super(AsyncBatchNode,self)._exec(i) for i in (items or [])]
 
 class AsyncParallelBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i) for i in items))
+    async def _exec(self,items): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i) for i in (items or [])))
 
 class AsyncFlow(Flow,AsyncNode):
     async def _orch_async(self,shared,params=None):
