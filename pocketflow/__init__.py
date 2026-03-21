@@ -45,9 +45,11 @@ class Flow(BaseNode):
     def __init__(self,start=None): super().__init__(); self.start_node=start
     def start(self,start): self.start_node=start; return start
     def get_next_node(self,curr,action):
-        nxt=curr.successors.get(action or "default")
-        if not nxt and curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
-        return nxt
+        key=action or "default"
+        if key not in curr.successors:
+            if curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
+            return None
+        return curr.successors[key]
     def _orch(self,shared,params=None):
         curr,p,last_action =copy.copy(self.start_node),(params or {**self.params}),None
         while curr: curr.set_params(p); last_action=curr._run(shared); curr=copy.copy(self.get_next_node(curr,last_action))
