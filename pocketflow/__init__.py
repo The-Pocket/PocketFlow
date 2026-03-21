@@ -24,7 +24,12 @@ class _ConditionalTransition:
     def __rshift__(self,tgt): return self.src.next(tgt,self.action)
 
 class Node(BaseNode):
-    def __init__(self,max_retries=1,wait=0): super().__init__(); self.max_retries,self.wait=max_retries,wait
+    def __init__(self,max_retries=1,wait=0):
+        if max_retries < 1:
+            raise ValueError("max_retries must be at least 1")
+        if wait < 0:
+            raise ValueError("wait must be non-negative")
+        super().__init__(); self.max_retries,self.wait=max_retries,wait
     def exec_fallback(self,prep_res,exc): raise exc
     def _exec(self,prep_res):
         for self.cur_retry in range(self.max_retries):
