@@ -21,6 +21,17 @@
 | [Memory](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-chat-memory) | ★☆☆ <br> *Beginner* | A chat bot with short-term and long-term memory |
 | [MCP](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-mcp) | ★☆☆ <br> *Beginner* |  Agent using Model Context Protocol for numerical operations |
 | [Tracing](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-tracing) | ★☆☆ <br> *Beginner* |  Trace and visualize the execution of your flow |
+| [Judge](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-judge) | ★☆☆ <br> *Beginner* | LLM-as-Judge evaluator-optimizer loop for iterative content refinement |
+| [Debate](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-debate) | ★☆☆ <br> *Beginner* | Adversarial reasoning with two advocates and a judge |
+| [Agentic RAG](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-agentic-rag) | ★☆☆ <br> *Beginner* | Agent-driven RAG that decides which documents to read |
+| [Self-Healing Mermaid](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-self-healing-mermaid) | ★☆☆ <br> *Beginner* | Generate Mermaid diagrams with automatic error recovery |
+| [Heartbeat](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-heartbeat) | ★☆☆ <br> *Beginner* | ClawBot-like always-on periodic monitoring with nested flows |
+| [Lead Generation](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-lead-generation) | ★★☆ <br> *Intermediate* | Sales pipeline: scrape, enrich, score, and personalize outreach emails |
+| [Newsletter](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-newsletter) | ★★☆ <br> *Intermediate* | AI newsletter curation: curate, filter, summarize, and format |
+| [Invoice Processing](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-invoice) | ★★☆ <br> *Intermediate* | Extract and validate invoice data from PDFs using vision |
+| [NotebookLM](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-notebook-lm) | ★★☆ <br> *Intermediate* | Turn documents into a podcast with two AI hosts |
+| [Deep Research](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-deep-research) | ★★☆ <br> *Intermediate* | Recursive map-reduce research with iterative refinement |
+| [Coding Agent](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-coding-agent) | ★★★ <br> *Advanced* | Production coding agent with 6 tools, memory, and patch-as-subflow |
 
 </div>
 

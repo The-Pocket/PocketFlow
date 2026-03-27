@@ -1,0 +1,3 @@
+pocketflow>=0.0.1
+openai>=1.0.0                # For LLM calls and TTS
+PyYAML>=6.0.2                # For YAML parsing

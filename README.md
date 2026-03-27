@@ -92,6 +92,17 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 | [FastAPI WebSocket](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-fastapi-websocket) | ★☆☆ <sup>*Beginner*</sup> | Real-time chat interface with streaming LLM responses via WebSocket |
 | [FastAPI Background](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-fastapi-background) | ★☆☆ <sup>*Beginner*</sup> | FastAPI app with background jobs and real-time progress via SSE |
 | [Voice Chat](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-voice-chat) | ★☆☆ <sup>*Beginner*</sup> | An interactive voice chat application with VAD, STT, LLM, and TTS. |
+| [Judge](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-judge) | ★☆☆ <sup>*Beginner*</sup> | LLM-as-Judge evaluator-optimizer loop for iterative content refinement |
+| [Debate](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-debate) | ★☆☆ <sup>*Beginner*</sup> | Adversarial reasoning with two advocates and an impartial judge |
+| [Agentic RAG](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-agentic-rag) | ★☆☆ <sup>*Beginner*</sup> | Agent-driven RAG that decides which documents to read |
+| [Self-Healing Mermaid](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-self-healing-mermaid) | ★☆☆ <sup>*Beginner*</sup> | Generate Mermaid diagrams with automatic error recovery |
+| [Heartbeat](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-heartbeat) | ★☆☆ <sup>*Beginner*</sup> | ClawBot-like always-on periodic monitoring with nested flows |
+| [Lead Generation](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-lead-generation) | ★★☆ <sup>*Intermediate*</sup> | Sales pipeline: scrape, enrich, score, and personalize emails |
+| [Newsletter](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-newsletter) | ★★☆ <sup>*Intermediate*</sup> | AI newsletter curation: search, filter, summarize, and format |
+| [Invoice Processing](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-invoice) | ★★☆ <sup>*Intermediate*</sup> | Extract and validate invoice data from PDFs using vision |
+| [NotebookLM](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-notebook-lm) | ★★☆ <sup>*Intermediate*</sup> | Turn documents into a podcast with two AI hosts |
+| [Deep Research](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-deep-research) | ★★☆ <sup>*Intermediate*</sup> | Recursive map-reduce research with iterative refinement |
+| [Coding Agent](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-coding-agent) | ★★★ <sup>*Advanced*</sup> | Production coding agent with 6 tools, memory, and patch-as-subflow |
 
 </div>
 

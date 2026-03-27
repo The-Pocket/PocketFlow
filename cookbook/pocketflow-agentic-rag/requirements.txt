@@ -1,0 +1,3 @@
+pocketflow>=0.0.1
+openai>=1.0.0
+pyyaml>=6.0

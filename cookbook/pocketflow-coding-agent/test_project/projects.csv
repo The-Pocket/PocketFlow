@@ -1,0 +1,7 @@
+id,name,department_id,status,start_date
+1,Project Alpha,1,active,2023-01-15
+2,Project Beta,1,completed,2022-06-01
+3,Campaign X,2,active,2023-03-20
+4,Campaign Y,2,paused,2023-05-10
+5,Sales Push,3,active,2023-02-28
+6,Onboarding,4,active,2023-04-01
