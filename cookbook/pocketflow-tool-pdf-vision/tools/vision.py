@@ -31,6 +31,12 @@ def extract_text_from_image(image: Image.Image, prompt: str = None) -> str:
         }]
     )
     
+    if not response.choices or response.choices[0].message is None or response.choices[0].message.content is None:
+
+    
+        raise ValueError("LLM returned empty or filtered response")
+
+    
     return response.choices[0].message.content
 
 if __name__ == "__main__":

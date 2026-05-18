@@ -10,6 +10,10 @@ def call_llm(prompt):
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}]
         )
+        if not r.choices or r.choices[0].message is None or r.choices[0].message.content is None:
+
+            raise ValueError("LLM returned empty or filtered response")
+
         return r.choices[0].message.content
     elif os.environ.get("GEMINI_API_KEY"):
         from google import genai
@@ -31,6 +35,10 @@ def call_llm_with_image(prompt, image_base64):
                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
             ]}]
         )
+        if not r.choices or r.choices[0].message is None or r.choices[0].message.content is None:
+
+            raise ValueError("LLM returned empty or filtered response")
+
         return r.choices[0].message.content
     elif os.environ.get("GEMINI_API_KEY"):
         from google import genai

@@ -14,6 +14,9 @@ def call_llm(message: str):
     response: ChatCompletion = client.chat.completions.create(
         model=model, messages=[{"role": "user", "content": message}]
     )
+    if not response.choices or response.choices[0].message is None or response.choices[0].message.content is None:
+
+        raise ValueError("LLM returned empty or filtered response")
     return response.choices[0].message.content
 
 
