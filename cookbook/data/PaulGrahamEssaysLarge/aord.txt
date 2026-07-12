@@ -46,7 +46,7 @@ business will spook investors even if your growth is great.  So no
 matter how good your growth is, you can never safely treat fundraising
 as more than a plan A. You should always have a plan B as well: you
 should know (as in write down) precisely what you'll need to do to
-survive if you can't raise more money, and precisely when you'll 
+survive if you can't raise more money, and precisely when you'll
 have to switch to plan B if plan A isn't working.In any case, growing fast versus operating cheaply is far from the
 sharp dichotomy many founders assume it to be.  In practice there
 is surprisingly little connection between how much a startup spends

@@ -9,7 +9,7 @@ Y Combinator.
 November 2009I don't think Apple realizes how badly the App Store approval process
 is broken.  Or rather, I don't think they realize how much it matters
 that it's broken.The way Apple runs the App Store has harmed their reputation with
-programmers more than anything else they've ever done. 
+programmers more than anything else they've ever done.
 Their reputation with programmers used to be great.
 It used to be the most common complaint you heard
 about Apple was that their fans admired them too uncritically.
@@ -109,8 +109,8 @@ as to inoculate themselves against arrogance.
 [1]That has worked for Google so far.  They've become more
 bureaucratic, but otherwise they seem to have held true to their
 original principles. With Apple that seems less the case.  When you
-look at the famous 
-1984 ad 
+look at the famous
+1984 ad
 now, it's easier to imagine Apple as the
 dictator on the screen than the woman with the hammer.
 [2]
@@ -127,7 +127,7 @@ anyone should know this, Apple should.  VisiCalc made the Apple II.And programme
 applications—most startups, probably—grow out of personal projects.
 Apple itself did.  Apple made microcomputers because that's what
 Steve Wozniak wanted for himself.  He couldn't have afforded a
-minicomputer. 
+minicomputer.
 [3]
  Microsoft likewise started out making interpreters
 for little microcomputers because
@@ -166,7 +166,7 @@ leaves no room there.  So this alternative device probably couldn't
 win on general appeal.  It would have to win by virtue of some
 appeal it had to programmers specifically.One way to appeal to programmers is with software.  If you
 could think of an application programmers had to have, but that
-would be impossible in the circumscribed world of the iPhone, 
+would be impossible in the circumscribed world of the iPhone,
 you could presumably get them to switch.That would definitely happen if programmers started to use handhelds
 as development machines—if handhelds displaced laptops the
 way laptops displaced desktops.  You need more control of a development
@@ -182,7 +182,7 @@ traveling.  If there was a version half the size I'd prefer it.
 That still wouldn't be small enough to carry around everywhere like
 a phone, but we're within a factor of 4 or so.  Surely that gap is
 bridgeable.  In fact, let's make it an
-RFS. Wanted: 
+RFS. Wanted:
 Woman with hammer.Notes[1]
 When Google adopted "Don't be evil," they were still so small
 that no one would have expected them to be, yet.
@@ -195,7 +195,7 @@ I used a TV as a monitor.[4]
 Several people I talked to mentioned how much they liked the
 iPhone SDK.  The problem is not Apple's products but their policies.
 Fortunately policies are software; Apple can change them instantly
-if they want to.  Handy that, isn't it?Thanks to Sam Altman, Trevor Blackwell, Ross Boucher, 
+if they want to.  Handy that, isn't it?Thanks to Sam Altman, Trevor Blackwell, Ross Boucher,
 James Bracy, Gabor Cselle,
 Patrick Collison, Jason Freedman, John Gruber, Joe Hewitt, Jessica Livingston,
 Robert Morris, Teng Siong Ong, Nikhil Pandit, Savraj Singh, and Jared Tame for reading drafts of this.

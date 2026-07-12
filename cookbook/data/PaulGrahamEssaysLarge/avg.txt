@@ -9,8 +9,8 @@ Y Combinator.
 April 2001, rev. April 2003(This article is derived from a talk given at the 2001 Franz
 Developer Symposium.)
 In the summer of 1995, my friend Robert Morris and I
-started a startup called 
-Viaweb.  
+started a startup called
+Viaweb.
 Our plan was to write
 software that would let end users build online stores.
 What was novel about this software, at the time, was
@@ -262,7 +262,7 @@ in Lisp.  It would be convenient here if I could give an example
 of a powerful macro, and say there! how about that?  But if I did,
 it would just look like gibberish to someone who didn't know Lisp;
 there isn't room here to explain everything you'd need to know to
-understand what it meant.  In 
+understand what it meant.  In
 Ansi Common Lisp I tried to move
 things along as fast as I could, and even so I didn't get to macros
 until page 160.But I think I can give a kind of argument that might be convincing.
@@ -282,8 +282,8 @@ are very hard to do in other languages.  The resulting software
 did things our competitors' software couldn't do.  Maybe there was
 some kind of connection.  I encourage you to follow that thread.
 There may be more to that old man hobbling along on his crutches
-than meets the eye.Aikido for StartupsBut I don't expect to convince anyone 
-(over 25) 
+than meets the eye.Aikido for StartupsBut I don't expect to convince anyone
+(over 25)
 to go out and learn
 Lisp.  The purpose of this article is not to change anyone's mind,
 but to reassure people already interested in using Lisp-- people
@@ -344,7 +344,7 @@ which people used to build their sites, and the ordering system,
 written in C, which handled orders.  The first version was mostly
 Lisp, because the ordering system was small.  Later we added two
 more modules, an image generator written in C, and a back-office
-manager written mostly in Perl.In January 2003, Yahoo released a new version of the editor 
+manager written mostly in Perl.In January 2003, Yahoo released a new version of the editor
 written in C++ and Perl.  It's hard to say whether the program is no
 longer written in Lisp, though, because to translate this program
 into C++ they literally had to write a Lisp interpreter: the source

@@ -15,7 +15,7 @@ English | [中文](https://github.com/The-Pocket/PocketFlow/blob/main/cookbook/p
 Pocket Flow is a [100-line](https://github.com/The-Pocket/PocketFlow/blob/main/pocketflow/__init__.py) minimalist LLM framework
 
 - **Lightweight**: Just 100 lines. Zero bloat, zero dependencies, zero vendor lock-in.
-  
+
 - **Expressive**: Everything you love—([Multi-](https://the-pocket.github.io/PocketFlow/design_pattern/multi_agent.html))[Agents](https://the-pocket.github.io/PocketFlow/design_pattern/agent.html), [Workflow](https://the-pocket.github.io/PocketFlow/design_pattern/workflow.html), [RAG](https://the-pocket.github.io/PocketFlow/design_pattern/rag.html), and more.
 
 - **[Agentic Coding](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
@@ -63,9 +63,9 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 ✨ Below are basic tutorials:
 
 <div align="center">
-  
-|  Name  | Difficulty    |  Description  |  
-| :-------------:  | :-------------: | :--------------------- |  
+
+|  Name  | Difficulty    |  Description  |
+| :-------------:  | :-------------: | :--------------------- |
 | [Chat](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-chat) | ☆☆☆ <sup>*Dummy*</sup>  | A basic chat bot with conversation history |
 | [Structured Output](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-structured-output) | ☆☆☆ <sup>*Dummy*</sup> | Extracting structured data from resumes by prompting |
 | [Workflow](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-workflow) | ☆☆☆ <sup>*Dummy*</sup> | A writing workflow that outlines, writes content, and applies styling |
@@ -123,7 +123,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 ✨ Below are examples of more complex LLM Apps:
 
 <div align="center">
-  
+
 |  App Name     |  Difficulty    | Topics  | Human Design | Agent Code |
 | :-------------:  | :-------------: | :---------------------: |  :---: |  :---: |
 | [Website Chatbot](https://github.com/The-Pocket/PocketFlow-Tutorial-Website-Chatbot) <br> <sup><sub>Turn your website into a 24/7 customer support genius</sup></sub> | ★★☆ <br> *Medium* | [Agent](https://the-pocket.github.io/PocketFlow/design_pattern/agent.html) <br> [RAG](https://the-pocket.github.io/PocketFlow/design_pattern/rag.html) | [Design Doc](https://github.com/The-Pocket/PocketFlow-Tutorial-Website-Chatbot/blob/main/docs/design.md) | [Flow Code](https://github.com/The-Pocket/PocketFlow-Tutorial-Website-Chatbot/blob/main/flow.py)

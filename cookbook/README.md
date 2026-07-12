@@ -2,9 +2,9 @@
 
 
 <div align="center">
-  
-|  Name  | Difficulty    |  Description  |  
-| :-------------:  | :-------------: | :--------------------- |  
+
+|  Name  | Difficulty    |  Description  |
+| :-------------:  | :-------------: | :--------------------- |
 | [Chat](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-chat) | ☆☆☆ <br> *Dummy*   | A basic chat bot with conversation history |
 | [Structured Output](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-structured-output) | ☆☆☆ <br> *Dummy* | Extracting structured data from resumes by prompting |
 | [Workflow](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-workflow) | ☆☆☆ <br> *Dummy*   | A writing workflow that outlines, writes content, and applies styling |
