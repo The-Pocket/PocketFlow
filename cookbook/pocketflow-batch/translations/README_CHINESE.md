@@ -23,7 +23,7 @@ Pocket Flow入门：
 - 了解更多，查看[文档](https://the-pocket.github.io/PocketFlow/)。了解动机，阅读[故事](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)。
 - 有问题？查看这个[AI助手](https://chatgpt.com/g/g-677464af36588191b9eba4901946557b-pocket-flow-assistant)，或[创建issue！](https://github.com/The-Pocket/PocketFlow/issues/new)
 - 🎉 加入我们的[Discord](https://discord.gg/hUHHE9Sa6T)，与其他使用Pocket Flow构建应用的开发者交流！
-- 🎉 Pocket Flow最初是Python版本，但我们现在有[Typescript](https://github.com/The-Pocket/PocketFlow-Typescript)，[Java](https://github.com/The-Pocket/PocketFlow-Java)，[C++](https://github.com/The-Pocket/PocketFlow-CPP)和[Go](https://github.com/The-Pocket/PocketFlow-Go)版本！
+- 🎉 Pocket Flow最初是Python版本，但我们现在有[Typescript](https://github.com/The-Pocket/PocketFlow-Typescript)，[Java](https://github.com/The-Pocket/PocketFlow-Java)，[C++](https://github.com/The-Pocket/PocketFlow-CPP)，[Go](https://github.com/The-Pocket/PocketFlow-Go)，[Rust](https://github.com/The-Pocket/PocketFlow-Rust)，[PHP](https://github.com/The-Pocket/PocketFlow-PHP)和[Dart](https://github.com/rag-wtf/PocketFlow-Dart)版本！
 
 ## 为什么选择Pocket Flow？
 

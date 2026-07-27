@@ -25,7 +25,7 @@ Comece com o Pocket Flow:
 - Para saber mais, consulte a [documentação](https://the-pocket.github.io/PocketFlow/). Para entender a motivação, leia a [história](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just).
 - Tem perguntas? Consulte este [Assistente de IA](https://chatgpt.com/g/g-677464af36588191b9eba4901946557b-pocket-flow-assistant), ou [crie uma issue!](https://github.com/The-Pocket/PocketFlow/issues/new)
 - 🎉 Junte-se ao nosso [Discord](https://discord.gg/hUHHE9Sa6T) para se conectar com outros desenvolvedores construindo com o Pocket Flow!
-- 🎉 O Pocket Flow é inicialmente em Python, mas agora temos versões em [Typescript](https://github.com/The-Pocket/PocketFlow-Typescript), [Java](https://github.com/The-Pocket/PocketFlow-Java), [C++](https://github.com/The-Pocket/PocketFlow-CPP) e [Go](https://github.com/The-Pocket/PocketFlow-Go)!
+- 🎉 O Pocket Flow é inicialmente em Python, mas agora temos versões em [Typescript](https://github.com/The-Pocket/PocketFlow-Typescript), [Java](https://github.com/The-Pocket/PocketFlow-Java), [C++](https://github.com/The-Pocket/PocketFlow-CPP), [Go](https://github.com/The-Pocket/PocketFlow-Go), [Rust](https://github.com/The-Pocket/PocketFlow-Rust), [PHP](https://github.com/The-Pocket/PocketFlow-PHP) e [Dart](https://github.com/rag-wtf/PocketFlow-Dart)!
 
 ## Por que Pocket Flow?
 
