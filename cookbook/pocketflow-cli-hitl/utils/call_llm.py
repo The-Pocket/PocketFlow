@@ -10,6 +10,9 @@ def call_llm(prompt: str) -> str:
             {"role": "user", "content": prompt}
         ]
     )
+    if not response.content or response.content[0].text is None:
+
+        raise ValueError("LLM returned empty or filtered response")
     return response.content[0].text
 
 if __name__ == "__main__":

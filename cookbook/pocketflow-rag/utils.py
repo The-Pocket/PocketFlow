@@ -8,6 +8,8 @@ def call_llm(prompt):
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}]
     )
+    if not r.choices or r.choices[0].message is None or r.choices[0].message.content is None:
+        raise ValueError("LLM returned empty or filtered response")
     return r.choices[0].message.content
 
 def get_embedding(text):

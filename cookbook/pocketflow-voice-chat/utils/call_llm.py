@@ -10,6 +10,12 @@ def call_llm(messages):
         temperature=0.7
     )
     
+    if not response.choices or response.choices[0].message is None or response.choices[0].message.content is None:
+
+    
+        raise ValueError("LLM returned empty or filtered response")
+
+    
     return response.choices[0].message.content
 
 if __name__ == "__main__":

@@ -19,4 +19,7 @@ def call_llm(prompt: str) -> str:
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
     )
+    if not response.choices or response.choices[0].message is None or response.choices[0].message.content is None:
+
+        raise ValueError("LLM returned empty or filtered response")
     return response.choices[0].message.content
