@@ -24,7 +24,12 @@ class _ConditionalTransition:
     def __rshift__(self,tgt): return self.src.next(tgt,self.action)
 
 class Node(BaseNode):
-    def __init__(self,max_retries=1,wait=0): super().__init__(); self.max_retries,self.wait=max_retries,wait
+    def __init__(self,max_retries=1,wait=0):
+        if max_retries < 1:
+            raise ValueError("max_retries must be at least 1")
+        if wait < 0:
+            raise ValueError("wait must be non-negative")
+        super().__init__(); self.max_retries,self.wait=max_retries,wait
     def exec_fallback(self,prep_res,exc): raise exc
     def _exec(self,prep_res):
         for self.cur_retry in range(self.max_retries):
@@ -40,9 +45,11 @@ class Flow(BaseNode):
     def __init__(self,start=None): super().__init__(); self.start_node=start
     def start(self,start): self.start_node=start; return start
     def get_next_node(self,curr,action):
-        nxt=curr.successors.get(action or "default")
-        if not nxt and curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
-        return nxt
+        key=action or "default"
+        if key not in curr.successors:
+            if curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
+            return None
+        return curr.successors[key]
     def _orch(self,shared,params=None):
         curr,p,last_action =copy.copy(self.start_node),(params or {**self.params}),None
         while curr: curr.set_params(p); last_action=curr._run(shared); curr=copy.copy(self.get_next_node(curr,last_action))
@@ -74,10 +81,10 @@ class AsyncNode(Node):
     def _run(self,shared): raise RuntimeError("Use run_async.")
 
 class AsyncBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items): return [await super(AsyncBatchNode,self)._exec(i) for i in items]
+    async def _exec(self,items): return [await super(AsyncBatchNode,self)._exec(i) for i in (items or [])]
 
 class AsyncParallelBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i) for i in items))
+    async def _exec(self,items): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i) for i in (items or [])))
 
 class AsyncFlow(Flow,AsyncNode):
     async def _orch_async(self,shared,params=None):
