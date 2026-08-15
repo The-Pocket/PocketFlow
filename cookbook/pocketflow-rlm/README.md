@@ -23,7 +23,7 @@ recursive sub-model calls rather than a predetermined chunking strategy.
 
 Options:
 
-- `--max-iterations`: root-model/REPL turns before the model must finish;
+- `--max-iterations`: maximum root-model turns; returns a bounded fallback if no `FINAL` is produced;
 - `--max-code-chars`: maximum generated program and child-query size.
 
 ## Flow

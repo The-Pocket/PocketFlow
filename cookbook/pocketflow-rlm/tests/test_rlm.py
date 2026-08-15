@@ -39,6 +39,7 @@ class RLMFlowTests(unittest.TestCase):
             "import os",
             "while True:\n    pass",
             "context = 'overwritten'",
+            "for i in range(1001):\n    pass",
         ):
             with self.assertRaises(RLMExecutionError):
                 repl.run(code)
