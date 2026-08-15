@@ -31,6 +31,7 @@
 | [Invoice Processing](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-invoice) | ★★☆ <br> *Intermediate* | Extract and validate invoice data from PDFs using vision |
 | [NotebookLM](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-notebook-lm) | ★★☆ <br> *Intermediate* | Turn documents into a podcast with two AI hosts |
 | [Deep Research](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-deep-research) | ★★☆ <br> *Intermediate* | Recursive map-reduce research with iterative refinement |
+| [Recursive Language Model](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-rlm) | ★★☆ <br> *Intermediate* | Root model explores external context through a restricted REPL and recursive sub-model calls |
 | [Coding Agent](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-coding-agent) | ★★★ <br> *Advanced* | Production coding agent with 6 tools, memory, and patch-as-subflow |
 
 </div>
