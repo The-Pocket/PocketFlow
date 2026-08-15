@@ -102,6 +102,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 | [Invoice Processing](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-invoice) | ★★☆ <sup>*Intermediate*</sup> | Extract and validate invoice data from PDFs using vision |
 | [NotebookLM](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-notebook-lm) | ★★☆ <sup>*Intermediate*</sup> | Turn documents into a podcast with two AI hosts |
 | [Deep Research](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-deep-research) | ★★☆ <sup>*Intermediate*</sup> | Recursive map-reduce research with iterative refinement |
+| [Recursive Language Model](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-rlm) | ★★☆ <sup>*Intermediate*</sup> | Keep long context external, recursively compress it, and answer within a context budget |
 | [Coding Agent](https://github.com/The-Pocket/PocketFlow/tree/main/cookbook/pocketflow-coding-agent) | ★★★ <sup>*Advanced*</sup> | Production coding agent with 6 tools, memory, and patch-as-subflow |
 
 </div>
