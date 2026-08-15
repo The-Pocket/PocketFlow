@@ -1,10 +1,10 @@
-"""LLM adapter kept separate so the cookbook can be tested with a fake model."""
+"""LLM adapter kept separate so the RLM can be tested with a fake model."""
 
 import os
 
 
 def call_llm(prompt):
-    """Call OpenAI's chat API; tests can replace this function with a fake."""
+    """Call an OpenAI-compatible chat model for one root or child request."""
 
     from openai import OpenAI
 

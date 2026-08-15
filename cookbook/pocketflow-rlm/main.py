@@ -1,4 +1,4 @@
-"""Run the RLM cookbook against a local text file."""
+"""Run the minimal RLM cookbook against a local UTF-8 text file."""
 
 import argparse
 from pathlib import Path
@@ -7,20 +7,18 @@ from flow import create_rlm_flow
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Summarize long context with PocketFlow RLM")
+    parser = argparse.ArgumentParser(description="Explore long context with PocketFlow RLM")
     parser.add_argument("document", type=Path, help="UTF-8 text file to analyze")
     parser.add_argument("question", help="Question to answer from the document")
-    parser.add_argument("--chunk-size", type=int, default=4000)
-    parser.add_argument("--max-context-chars", type=int, default=6000)
-    parser.add_argument("--max-levels", type=int, default=3)
+    parser.add_argument("--max-iterations", type=int, default=6)
+    parser.add_argument("--max-code-chars", type=int, default=8000)
     args = parser.parse_args()
 
     shared = {
-        "document": args.document.read_text(encoding="utf-8"),
+        "context": args.document.read_text(encoding="utf-8"),
         "question": args.question,
-        "chunk_size": args.chunk_size,
-        "max_context_chars": args.max_context_chars,
-        "max_levels": args.max_levels,
+        "max_iterations": args.max_iterations,
+        "max_code_chars": args.max_code_chars,
     }
     create_rlm_flow().run(shared)
     print(shared["answer"])
