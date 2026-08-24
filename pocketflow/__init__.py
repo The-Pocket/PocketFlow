@@ -1,4 +1,4 @@
-import asyncio, warnings, copy, time
+import asyncio, warnings, copy, time, contextvars
 
 class BaseNode:
     def __init__(self): self.params,self.successors={},{}
@@ -57,6 +57,12 @@ class BatchFlow(Flow):
         return self.post(shared,pr,None)
 
 class AsyncNode(Node):
+    def __init__(self,max_retries=1,wait=0):
+        super().__init__(max_retries,wait); self._cur_retry=contextvars.ContextVar("cur_retry",default=0)
+    @property
+    def cur_retry(self): return self._cur_retry.get()
+    @cur_retry.setter
+    def cur_retry(self,value): self._cur_retry.set(value)
     async def prep_async(self,shared): pass
     async def exec_async(self,prep_res): pass
     async def exec_fallback_async(self,prep_res,exc): raise exc

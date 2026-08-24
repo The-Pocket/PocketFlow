@@ -139,5 +139,37 @@ class TestAsyncParallelBatchNode(unittest.TestCase):
         self.assertLess(execution_order.index(1), execution_order.index(0))
         self.assertLess(execution_order.index(3), execution_order.index(2))
 
+    def test_retry_state_is_isolated_per_item(self):
+        """Each parallel item should observe and control its own retry attempt."""
+        class RetryProcessor(AsyncParallelBatchNode):
+            def __init__(self):
+                super().__init__(max_retries=2)
+                self.second_attempt_started = asyncio.Event()
+                self.attempts = {'a': [], 'b': []}
+
+            async def prep_async(self, shared_storage):
+                return ['a', 'b']
+
+            async def exec_async(self, item):
+                self.attempts[item].append(self.cur_retry)
+                if self.cur_retry == 0:
+                    if item == 'a':
+                        await self.second_attempt_started.wait()
+                    raise RuntimeError(f"retry {item}")
+
+                if item == 'b':
+                    self.second_attempt_started.set()
+                return f"{item}-ok"
+
+            async def post_async(self, shared_storage, prep_result, exec_result):
+                shared_storage['results'] = exec_result
+
+        shared_storage = {}
+        processor = RetryProcessor()
+        self.loop.run_until_complete(processor.run_async(shared_storage))
+
+        self.assertEqual(shared_storage['results'], ['a-ok', 'b-ok'])
+        self.assertEqual(processor.attempts, {'a': [0, 1], 'b': [0, 1]})
+
 if __name__ == '__main__':
     unittest.main()
