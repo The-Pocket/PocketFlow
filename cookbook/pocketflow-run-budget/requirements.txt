@@ -1,0 +1,3 @@
+pocketflow>=0.0.2
+openai>=1.0
+inferrail>=0.4.10
