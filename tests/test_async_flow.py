@@ -1,5 +1,6 @@
 import unittest
 import asyncio
+import warnings
 import sys
 from pathlib import Path
 
@@ -107,6 +108,19 @@ class TestAsyncFlow(unittest.TestCase):
     """
     Test how AsyncFlow orchestrates multiple async nodes.
     """
+    def test_explicit_terminal_transition_does_not_warn(self):
+        for action in ("complete", "default", None):
+            with self.subTest(action=action):
+                start = AsyncSignalNode(action)
+                start - "aggregate_report" >> AsyncNumberNode(10)
+                start - (action or "default") >> None
+                shared = {}
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error")
+                    result = asyncio.run(AsyncFlow(start).run_async(shared))
+                self.assertEqual(result, action)
+                self.assertEqual(shared, {"last_async_signal_emitted": action})
+
     def test_simple_async_flow(self):
         """
         Flow:

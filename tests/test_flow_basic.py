@@ -62,6 +62,19 @@ class EndSignalNode(Node):
 # --- Test Class ---
 class TestFlowBasic(unittest.TestCase):
 
+    def test_explicit_terminal_transition_does_not_warn(self):
+        for action in ("complete", "default", None):
+            with self.subTest(action=action):
+                start = EndSignalNode(action)
+                start - "aggregate_report" >> NumberNode(10)
+                start - (action or "default") >> None
+                shared = {}
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error")
+                    result = Flow(start).run(shared)
+                self.assertEqual(result, action)
+                self.assertEqual(shared, {})
+
     def test_start_method_initialization(self):
         """Test initializing flow with start() after creation."""
         shared_storage = {}

@@ -41,7 +41,7 @@ class Flow(BaseNode):
     def start(self,start): self.start_node=start; return start
     def get_next_node(self,curr,action):
         nxt=curr.successors.get(action or "default")
-        if not nxt and curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
+        if (action or "default") not in curr.successors and curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
         return nxt
     def _orch(self,shared,params=None):
         curr,p,last_action =copy.copy(self.start_node),(params or {**self.params}),None
