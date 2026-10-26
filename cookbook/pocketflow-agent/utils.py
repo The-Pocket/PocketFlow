@@ -19,7 +19,7 @@ def search_web_duckduckgo(query):
 
 def search_web_brave(query):
 
-    url = f"https://api.search.brave.com/res/v1/web/search?q={query}"
+    url = "https://api.search.brave.com/res/v1/web/search"
     api_key = "your brave search api key"
 
     headers = {
@@ -28,14 +28,11 @@ def search_web_brave(query):
         "x-subscription-token": api_key
     }
 
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        data = response.json()
-        results = data['web']['results']
-        results_str = "\n\n".join([f"Title: {r['title']}\nURL: {r['url']}\nDescription: {r['description']}" for r in results])     
-    else:
-        print(f"Request failed with status code: {response.status_code}")
+    response = requests.get(url, headers=headers, params={"q": query})
+    response.raise_for_status()
+    data = response.json()
+    results = data['web']['results']
+    results_str = "\n\n".join([f"Title: {r['title']}\nURL: {r['url']}\nDescription: {r['description']}" for r in results])
     return results_str
     
 if __name__ == "__main__":
