@@ -50,12 +50,12 @@ def build_mermaid(start):
                 if parent:
                     link(parent, get_id(node.start_node), action)
                 lines.append(
-                    f"\\n    subgraph sub_flow_{node_id}[{type(node).__name__}]"
+                    f"\n    subgraph sub_flow_{node_id}[{type(node).__name__}]"
                 )
                 walk(node.start_node)
                 for next_action, next_node in node.successors.items():
                     walk(next_node, get_id(node.start_node), next_action)
-                lines.append("    end\\n")
+                lines.append("    end\n")
         else:
             lines.append(f"    {node_id}['{type(node).__name__}']")
             if parent:
@@ -64,7 +64,7 @@ def build_mermaid(start):
                 walk(next_node, node_id, next_action)
 
     walk(start)
-    return "\\n".join(lines)
+    return "\n".join(lines)
 ```
 {% endraw %}
 
