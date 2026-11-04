@@ -7,9 +7,9 @@ nav_order: 6
 
 # (Advanced) Parallel
 
-**Parallel** Nodes and Flows let you run multiple **Async** Nodes and Flows  **concurrently**—for example, summarizing multiple texts at once. This can improve performance by overlapping I/O and compute. 
+**Parallel** Nodes and Flows run multiple async tasks concurrently with `asyncio.gather`—for example, summarizing multiple texts at once. They can reduce latency by overlapping time spent awaiting I/O, such as LLM calls, database queries, or API requests.
 
-> Because of Python’s GIL, parallel nodes and flows can’t truly parallelize CPU-bound tasks (e.g., heavy numerical computations). However, they excel at overlapping I/O-bound work—like LLM calls, database queries, API requests, or file I/O.
+> These classes do not run synchronous CPU-bound Python code in parallel. Such work runs on the event-loop thread and blocks other tasks; move long-running CPU work to an appropriate executor, such as a process pool.
 {: .warning }
 
 > - **Ensure Tasks Are Independent**: If each item depends on the output of a previous item, **do not** parallelize.
