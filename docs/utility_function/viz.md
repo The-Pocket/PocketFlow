@@ -11,35 +11,60 @@ Similar to LLM wrappers, we **don't** provide built-in visualization and debuggi
 
 ## 1. Visualization with Mermaid
 
-This code recursively traverses the nested graph, assigns unique IDs to each node, and treats Flow nodes as subgraphs to generate Mermaid syntax for a hierarchical visualization.
+This code recursively traverses the nested graph, assigns unique IDs to each node, and treats Flow nodes as subgraphs to generate Mermaid syntax for a hierarchical visualization. Successors are traversed with their action names, so conditional links appear as labeled Mermaid edges (for example, `A -->|yes| B`); links without an action remain unlabeled.
 
 {% raw %}
 ```python
 def build_mermaid(start):
     ids, visited, lines = {}, set(), ["graph LR"]
+    emitted_links = set()
     ctr = 1
-    def get_id(n):
+
+    def get_id(node):
         nonlocal ctr
-        return ids[n] if n in ids else (ids.setdefault(n, f"N{ctr}"), (ctr := ctr + 1))[0]
-    def link(a, b):
-        lines.append(f"    {a} --> {b}")
-    def walk(node, parent=None):
-        if node in visited:
-            return parent and link(parent, get_id(node))
-        visited.add(node)
-        if isinstance(node, Flow):
-            node.start_node and parent and link(parent, get_id(node.start_node))
-            lines.append(f"\n    subgraph sub_flow_{get_id(node)}[{type(node).__name__}]")
-            node.start_node and walk(node.start_node)
-            for nxt in node.successors.values():
-                node.start_node and walk(nxt, get_id(node.start_node)) or (parent and link(parent, get_id(nxt))) or walk(nxt)
-            lines.append("    end\n")
+        if node not in ids:
+            ids[node] = f"N{ctr}"
+            ctr += 1
+        return ids[node]
+
+    def link(source, target, action=None):
+        edge = (source, target, action)
+        if edge in emitted_links:
+            return
+        emitted_links.add(edge)
+        if action:
+            lines.append(f"    {source} -->|{action}| {target}")
         else:
-            lines.append(f"    {(nid := get_id(node))}['{type(node).__name__}']")
-            parent and link(parent, nid)
-            [walk(nxt, nid) for nxt in node.successors.values()]
+            lines.append(f"    {source} --> {target}")
+
+    def walk(node, parent=None, action=None):
+        node_id = get_id(node)
+        if node in visited:
+            if parent:
+                link(parent, node_id, action)
+            return
+        visited.add(node)
+
+        if isinstance(node, Flow):
+            if node.start_node:
+                if parent:
+                    link(parent, get_id(node.start_node), action)
+                lines.append(
+                    f"\\n    subgraph sub_flow_{node_id}[{type(node).__name__}]"
+                )
+                walk(node.start_node)
+                for next_action, next_node in node.successors.items():
+                    walk(next_node, get_id(node.start_node), next_action)
+                lines.append("    end\\n")
+        else:
+            lines.append(f"    {node_id}['{type(node).__name__}']")
+            if parent:
+                link(parent, node_id, action)
+            for next_action, next_node in node.successors.items():
+                walk(next_node, node_id, next_action)
+
     walk(start)
-    return "\n".join(lines)
+    return "\\n".join(lines)
 ```
 {% endraw %}
 
