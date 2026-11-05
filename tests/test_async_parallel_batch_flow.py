@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncNode, AsyncParallelBatchNode, AsyncParallelBatchFlow
+from pocketflow import AsyncFlow, AsyncNode, AsyncParallelBatchNode, AsyncParallelBatchFlow
 
 class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
     def __init__(self, delay=0.1):
@@ -69,8 +69,9 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         processor = AsyncParallelNumberProcessor(delay=0.1)
         aggregator = AsyncAggregatorNode()
         
-        processor - "processed" >> aggregator
-        flow = TestParallelBatchFlow(start=processor)
+        batch_flow = TestParallelBatchFlow(start=processor)
+        batch_flow >> aggregator
+        flow = AsyncFlow(start=batch_flow)
         
         start_time = self.loop.time()
         self.loop.run_until_complete(flow.run_async(shared_storage))
@@ -90,6 +91,66 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         
         # Verify parallel execution
         self.assertLess(execution_time, 0.2)
+
+    def test_aggregation_waits_for_all_batches(self):
+        async def run_test():
+            all_started = asyncio.Event()
+            release = [asyncio.Event() for _ in range(3)]
+            release[2].set()
+
+            class ControlledProcessor(AsyncParallelNumberProcessor):
+                async def prep_async(self, shared_storage):
+                    batch_id = self.params['batch_id']
+                    shared_storage['started'].append(batch_id)
+                    if len(shared_storage['started']) == 3:
+                        all_started.set()
+                    await all_started.wait()
+                    await release[batch_id].wait()
+                    return await super().prep_async(shared_storage)
+
+                async def post_async(self, shared_storage, prep_result, exec_result):
+                    action = await super().post_async(shared_storage, prep_result, exec_result)
+                    batch_id = self.params['batch_id']
+                    shared_storage['completed'].append(batch_id)
+                    if batch_id > 0:
+                        release[batch_id - 1].set()
+                    return action
+
+            class RecordingAggregator(AsyncAggregatorNode):
+                async def prep_async(self, shared_storage):
+                    shared_storage['aggregation_inputs'].append(
+                        set(shared_storage['processed_numbers'])
+                    )
+                    return await super().prep_async(shared_storage)
+
+            class ControlledBatchFlow(AsyncParallelBatchFlow):
+                async def prep_async(self, shared_storage):
+                    return [{'batch_id': i} for i in range(len(shared_storage['batches']))]
+
+            shared_storage = {
+                'batches': [[1, 2], [3], [4, 5, 6]],
+                'started': [],
+                'completed': [],
+                'aggregation_inputs': [],
+            }
+            processor = ControlledProcessor(delay=0)
+            aggregator = RecordingAggregator()
+            batch_flow = ControlledBatchFlow(start=processor)
+            batch_flow >> aggregator
+            flow = AsyncFlow(start=batch_flow)
+
+            # Bound the wait if batch execution accidentally becomes sequential.
+            await asyncio.wait_for(flow.run_async(shared_storage), timeout=1)
+
+            self.assertCountEqual(shared_storage['started'], [0, 1, 2])
+            self.assertEqual(shared_storage['completed'], [2, 1, 0])
+            self.assertEqual(shared_storage['aggregation_inputs'], [{0, 1, 2}])
+            self.assertEqual(shared_storage['processed_numbers'], {
+                0: [2, 4], 1: [6], 2: [8, 10, 12],
+            })
+            self.assertEqual(shared_storage['total'], 42)
+
+        asyncio.run(run_test())
 
     def test_error_handling(self):
         """
@@ -138,8 +199,9 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         processor = AsyncParallelNumberProcessor(delay=0.05)
         aggregator = AsyncAggregatorNode()
         
-        processor - "processed" >> aggregator
-        flow = VaryingBatchFlow(start=processor)
+        batch_flow = VaryingBatchFlow(start=processor)
+        batch_flow >> aggregator
+        flow = AsyncFlow(start=batch_flow)
         
         self.loop.run_until_complete(flow.run_async(shared_storage))
         
