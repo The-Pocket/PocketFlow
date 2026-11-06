@@ -21,7 +21,7 @@ Pocket Flow ist ein [100-zeiliges](https://github.com/The-Pocket/PocketFlow/blob
 - **[Agenten-basiertes Programmieren](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: Lassen Sie KI-Agenten (z.B. Cursor AI) Agenten bauen—10-fache Produktivitätssteigerung!
 
 Erste Schritte mit Pocket Flow:
-- Zur Installation, ```pip install pocketflow```oder kopieren Sie einfach den [Quellcode](https://github.com/The-Pocket/PocketFlow/blob/main/pocketflow/__init__.py) (nur 100 Zeilen).
+- Zur Installation, ```pip install pocketflow``` oder kopieren Sie einfach den [Quellcode](https://github.com/The-Pocket/PocketFlow/blob/main/pocketflow/__init__.py) (nur 100 Zeilen).
 - Um mehr zu erfahren, schauen Sie in die [Dokumentation](https://the-pocket.github.io/PocketFlow/). Um die Motivation zu verstehen, lesen Sie die [Geschichte](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just).
 - Haben Sie Fragen? Schauen Sie sich diesen [KI-Assistenten](https://chatgpt.com/g/g-677464af36588191b9eba4901946557b-pocket-flow-assistant) an, oder [erstellen Sie ein Issue!](https://github.com/The-Pocket/PocketFlow/issues/new)
 - 🎉 Treten Sie unserem [Discord](https://discord.gg/hUHHE9Sa6T) bei, um sich mit anderen Entwicklern zu vernetzen, die mit Pocket Flow arbeiten!
