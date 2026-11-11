@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncNode, AsyncParallelBatchNode, AsyncParallelBatchFlow
+from pocketflow import AsyncFlow, AsyncNode, AsyncParallelBatchNode, AsyncParallelBatchFlow
 
 class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
     def __init__(self, delay=0.1):
@@ -69,8 +69,9 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         processor = AsyncParallelNumberProcessor(delay=0.1)
         aggregator = AsyncAggregatorNode()
         
-        processor - "processed" >> aggregator
-        flow = TestParallelBatchFlow(start=processor)
+        batch_flow = TestParallelBatchFlow(start=processor)
+        batch_flow >> aggregator
+        flow = AsyncFlow(start=batch_flow)
         
         start_time = self.loop.time()
         self.loop.run_until_complete(flow.run_async(shared_storage))
@@ -90,6 +91,199 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         
         # Verify parallel execution
         self.assertLess(execution_time, 0.2)
+
+    def test_aggregation_waits_for_all_batches(self):
+        async def run_test():
+            all_started = asyncio.Event()
+            release = [asyncio.Event() for _ in range(3)]
+            release[2].set()
+
+            class ControlledProcessor(AsyncParallelNumberProcessor):
+                async def prep_async(self, shared_storage):
+                    batch_id = self.params['batch_id']
+                    shared_storage['started'].append(batch_id)
+                    if len(shared_storage['started']) == 3:
+                        all_started.set()
+                    await all_started.wait()
+                    await release[batch_id].wait()
+                    return await super().prep_async(shared_storage)
+
+                async def post_async(self, shared_storage, prep_result, exec_result):
+                    action = await super().post_async(shared_storage, prep_result, exec_result)
+                    batch_id = self.params['batch_id']
+                    shared_storage['completed'].append(batch_id)
+                    if batch_id > 0:
+                        release[batch_id - 1].set()
+                    return action
+
+            class RecordingAggregator(AsyncAggregatorNode):
+                async def prep_async(self, shared_storage):
+                    shared_storage['aggregation_inputs'].append(
+                        set(shared_storage['processed_numbers'])
+                    )
+                    return await super().prep_async(shared_storage)
+
+            class ControlledBatchFlow(AsyncParallelBatchFlow):
+                async def prep_async(self, shared_storage):
+                    return [{'batch_id': i} for i in range(len(shared_storage['batches']))]
+
+            shared_storage = {
+                'batches': [[1, 2], [3], [4, 5, 6]],
+                'started': [],
+                'completed': [],
+                'aggregation_inputs': [],
+            }
+            processor = ControlledProcessor(delay=0)
+            aggregator = RecordingAggregator()
+            batch_flow = ControlledBatchFlow(start=processor)
+            batch_flow >> aggregator
+            flow = AsyncFlow(start=batch_flow)
+
+            # Bound the wait if batch execution accidentally becomes sequential.
+            await asyncio.wait_for(flow.run_async(shared_storage), timeout=1)
+
+            self.assertCountEqual(shared_storage['started'], [0, 1, 2])
+            self.assertEqual(shared_storage['completed'], [2, 1, 0])
+            self.assertEqual(shared_storage['aggregation_inputs'], [{0, 1, 2}])
+            self.assertEqual(shared_storage['processed_numbers'], {
+                0: [2, 4], 1: [6], 2: [8, 10, 12],
+            })
+            self.assertEqual(shared_storage['total'], 42)
+
+        asyncio.run(run_test())
+
+    def test_failed_batch_skips_aggregation(self):
+        async def run_test():
+            all_started = asyncio.Event()
+            first_completed = asyncio.Event()
+            release_error = asyncio.Event()
+            release_survivor = asyncio.Event()
+            branch_tasks = []
+            error = ValueError("batch failed")
+            shared = {'completed': [], 'aggregations': []}
+
+            class ControlledProcessor(AsyncNode):
+                async def prep_async(self, shared):
+                    branch_tasks.append(asyncio.current_task())
+                    if len(branch_tasks) == 3:
+                        all_started.set()
+                    await all_started.wait()
+                    return self.params['batch_id']
+
+                async def exec_async(self, batch_id):
+                    if batch_id == 1:
+                        await release_error.wait()
+                        raise error
+                    if batch_id == 2:
+                        await release_survivor.wait()
+                    return batch_id
+
+                async def post_async(self, shared, prep_res, exec_res):
+                    shared['completed'].append(exec_res)
+                    first_completed.set()
+
+            class RecordingAggregator(AsyncNode):
+                async def prep_async(self, shared):
+                    shared['aggregations'].append(list(shared['completed']))
+
+            class ControlledBatchFlow(AsyncParallelBatchFlow):
+                async def prep_async(self, shared):
+                    return [{'batch_id': i} for i in range(3)]
+
+            processor = ControlledProcessor()
+            aggregator = RecordingAggregator()
+            batch_flow = ControlledBatchFlow(start=processor)
+            batch_flow >> aggregator
+            flow = AsyncFlow(start=batch_flow)
+            task = asyncio.create_task(flow.run_async(shared))
+            try:
+                await asyncio.wait_for(first_completed.wait(), timeout=1)
+                self.assertEqual(shared['completed'], [0])
+                self.assertEqual(shared['aggregations'], [])
+                release_error.set()
+                with self.assertRaises(ValueError) as caught:
+                    await asyncio.wait_for(task, timeout=1)
+                self.assertIs(caught.exception, error)
+                self.assertEqual(shared['aggregations'], [])
+                release_survivor.set()
+                await asyncio.wait_for(
+                    asyncio.gather(*branch_tasks, return_exceptions=True), timeout=1
+                )
+                self.assertEqual(shared['completed'], [0, 2])
+                self.assertEqual(shared['aggregations'], [])
+            finally:
+                # A failed gather does not cancel siblings; own all test tasks.
+                release_error.set()
+                release_survivor.set()
+                if not task.done():
+                    task.cancel()
+                await asyncio.gather(task, *branch_tasks, return_exceptions=True)
+
+        asyncio.run(run_test())
+
+    def test_cancelled_batch_skips_aggregation(self):
+        async def run_test():
+            all_started = asyncio.Event()
+            first_completed = asyncio.Event()
+            release = asyncio.Event()
+            branch_tasks = []
+            finished = []
+            cancelled = []
+            shared = {'completed': [], 'aggregations': []}
+
+            class ControlledProcessor(AsyncNode):
+                async def prep_async(self, shared):
+                    batch_id = self.params['batch_id']
+                    branch_tasks.append(asyncio.current_task())
+                    if len(branch_tasks) == 3:
+                        all_started.set()
+                    try:
+                        await all_started.wait()
+                        if batch_id != 0:
+                            await release.wait()
+                        return batch_id
+                    except asyncio.CancelledError:
+                        cancelled.append(batch_id)
+                        raise
+                    finally:
+                        finished.append(batch_id)
+
+                async def post_async(self, shared, prep_res, exec_res):
+                    shared['completed'].append(prep_res)
+                    first_completed.set()
+
+            class RecordingAggregator(AsyncNode):
+                async def prep_async(self, shared):
+                    shared['aggregations'].append(list(shared['completed']))
+
+            class ControlledBatchFlow(AsyncParallelBatchFlow):
+                async def prep_async(self, shared):
+                    return [{'batch_id': i} for i in range(3)]
+
+            processor = ControlledProcessor()
+            aggregator = RecordingAggregator()
+            batch_flow = ControlledBatchFlow(start=processor)
+            batch_flow >> aggregator
+            flow = AsyncFlow(start=batch_flow)
+            task = asyncio.create_task(flow.run_async(shared))
+            try:
+                await asyncio.wait_for(first_completed.wait(), timeout=1)
+                self.assertEqual(shared['completed'], [0])
+                self.assertEqual(shared['aggregations'], [])
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await asyncio.wait_for(task, timeout=1)
+                self.assertTrue(task.cancelled())
+                self.assertCountEqual(cancelled, [1, 2])
+                self.assertCountEqual(finished, [0, 1, 2])
+                self.assertEqual(shared['aggregations'], [])
+            finally:
+                release.set()
+                if not task.done():
+                    task.cancel()
+                await asyncio.gather(task, *branch_tasks, return_exceptions=True)
+
+        asyncio.run(run_test())
 
     def test_error_handling(self):
         """
@@ -138,8 +332,9 @@ class TestAsyncParallelBatchFlow(unittest.TestCase):
         processor = AsyncParallelNumberProcessor(delay=0.05)
         aggregator = AsyncAggregatorNode()
         
-        processor - "processed" >> aggregator
-        flow = VaryingBatchFlow(start=processor)
+        batch_flow = VaryingBatchFlow(start=processor)
+        batch_flow >> aggregator
+        flow = AsyncFlow(start=batch_flow)
         
         self.loop.run_until_complete(flow.run_async(shared_storage))
         
