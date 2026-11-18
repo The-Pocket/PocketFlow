@@ -86,11 +86,13 @@ python main.py --grf-acceptance
 
 When the model says `done`, the agent runs the project-local `python grf.py
 check`. A failing check is appended to its history and the active GRF task is
-left open so the agent can repair the project. A passing check must include a
-real receipt; the agent passes that receipt and its result summary to the
-project-local `session complete` command. If GRF completion is rejected, the
-agent does not treat the task as complete. This is cooperative workflow
-gating, not a security boundary or proof that the checks are well designed.
+left open so the agent can repair the project. If the step budget is exhausted,
+the node raises `GrfAcceptanceError` instead of returning normal completion; the
+GRF task remains uncompleted. A passing check must include a real receipt; the
+agent passes that receipt and its result summary to the project-local
+`session complete` command. If GRF completion is rejected, the agent does not
+treat the task as complete. This is cooperative workflow gating, not a security
+boundary or proof that the checks are well designed.
 
 ## Files
 

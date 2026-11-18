@@ -1,54 +1,55 @@
-"""Focused tests for the optional GRF gate (stdlib unittest only)."""
-import json
+"""Regression tests for the optional GRF gate on the real PocketFlow Node."""
 import sys
-import tempfile
-import types
 import unittest
-from pathlib import Path
 from unittest.mock import patch
 
-# The gate itself uses stdlib APIs; keep this test independent of the example's
-# optional PocketFlow/OpenAI runtime dependencies.
-pocketflow = types.ModuleType("pocketflow")
-pocketflow.Node = type("Node", (), {})
-pocketflow.Flow = type("Flow", (), {})
-sys.modules.setdefault("pocketflow", pocketflow)
-utils = types.ModuleType("utils")
-utils.call_llm = lambda *_args, **_kwargs: ""
-sys.modules.setdefault("utils", utils)
+# Import the repository's real PocketFlow Node class. GRF behavior itself is
+# exercised by the isolated adoption smoke test; these tests isolate the node's
+# boundary decision while mocking only its GRF result and external LLM call.
+from pocketflow import Node
 
-from nodes import complete_grf_task
+import nodes
 
 
 class GrfAcceptanceTests(unittest.TestCase):
-    def test_failed_check_does_not_attempt_completion(self):
-        failed = types.SimpleNamespace(returncode=1, stdout='{"result":"FAIL"}', stderr="")
-        with patch("nodes.subprocess.run", return_value=failed) as run:
-            passed, message = complete_grf_task("/project", "finished")
-        self.assertFalse(passed)
-        self.assertIn("task remains active", message)
-        self.assertEqual(run.call_count, 1)
-        self.assertEqual(run.call_args.args[0][-2:], ["grf.py", "check"])
+    def test_decide_action_is_a_real_pocketflow_node(self):
+        self.assertTrue(issubclass(nodes.DecideAction, Node))
 
-    def test_passing_check_completes_with_its_receipt(self):
-        with tempfile.TemporaryDirectory() as project:
-            receipt = Path(project, ".grf", "receipts", "pass.json")
-            receipt.parent.mkdir(parents=True)
-            receipt.write_text("{}", encoding="utf-8")
-            check = types.SimpleNamespace(
-                returncode=0,
-                stdout=json.dumps({"result": "PASS", "receipt": ".grf/receipts/pass.json"}),
-                stderr="",
-            )
-            complete = types.SimpleNamespace(returncode=0, stdout="completed", stderr="")
-            with patch("nodes.subprocess.run", side_effect=[check, complete]) as run:
-                passed, message = complete_grf_task(project, "all tests pass")
-            self.assertTrue(passed)
-            self.assertEqual(message, "completed")
-            command = run.call_args_list[1].args[0]
-            self.assertEqual(command[1:4], ["grf.py", "session", "complete"])
-            self.assertEqual(command[command.index("--evidence") + 1], ".grf/receipts/pass.json")
-            self.assertEqual(command[command.index("--summary") + 1], "all tests pass")
+    def test_failed_check_with_budget_returns_retry_and_keeps_failure_in_history(self):
+        shared = {"workdir": "/unused", "grf_acceptance": True, "history": [], "step": 0}
+        with patch("nodes.complete_grf_task", return_value=(False, "checks failed; task remains active")):
+            action = nodes.DecideAction().post(shared, None, {"tool": "done", "result": "finished"})
+        self.assertEqual(action, "retry")
+        self.assertIn("checks failed", shared["history"][-1]["result"])
+        self.assertEqual(shared["result"], "checks failed; task remains active")
+
+    def test_done_at_step_limit_raises_non_success_on_failed_check(self):
+        shared = {"workdir": "/unused", "grf_acceptance": True, "history": [], "step": nodes.MAX_STEPS - 1}
+        with patch("nodes.complete_grf_task", return_value=(False, "checks failed")):
+            with self.assertRaises(nodes.GrfAcceptanceError):
+                nodes.DecideAction().post(shared, None, {"tool": "done", "result": "finished"})
+        self.assertIn("checks failed", shared["result"])
+
+    def test_regular_tool_at_step_limit_raises_non_success_on_failed_check(self):
+        shared = {"workdir": "/unused", "grf_acceptance": True, "history": [], "step": nodes.MAX_STEPS - 1}
+        with patch("nodes.complete_grf_task", return_value=(False, "checks failed")):
+            with self.assertRaises(nodes.GrfAcceptanceError):
+                nodes.DecideAction().post(shared, None, {"tool": "run_command"})
+        self.assertIn("checks failed", shared["result"])
+
+    def test_passed_check_allows_done(self):
+        shared = {"workdir": "/unused", "grf_acceptance": True, "history": [], "step": nodes.MAX_STEPS - 1}
+        with patch("nodes.complete_grf_task", return_value=(True, "completed")):
+            action = nodes.DecideAction().post(shared, None, {"tool": "done", "result": "finished"})
+        self.assertEqual(action, "done")
+        self.assertEqual(shared["result"], "finished")
+
+    def test_default_done_path_is_unchanged(self):
+        shared = {"workdir": "/unused", "history": [], "step": 0}
+        with patch("nodes.complete_grf_task") as grf:
+            action = nodes.DecideAction().post(shared, None, {"tool": "done", "result": "finished"})
+        self.assertEqual(action, "done")
+        grf.assert_not_called()
 
 
 if __name__ == "__main__":

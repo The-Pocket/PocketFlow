@@ -39,6 +39,11 @@ TOOL_DESC = """- list_files(directory='.') — List all files
 
 VALID_TOOLS = {"list_files", "grep_search", "read_file", "patch_file", "run_command"}
 
+
+class GrfAcceptanceError(RuntimeError):
+    """Raised when the GRF gate fails and the agent has no repair steps left."""
+
+
 class CompactHistory(Node):
     def prep(self, shared):
         return shared.get("history", []), shared["task"]
@@ -92,7 +97,9 @@ class DecideAction(Node):
                         "tool": "grf_acceptance", "args": {}, "result": message,
                     })
                     shared["result"] = message
-                    if tool == "done" and step < MAX_STEPS:
+                    if step >= MAX_STEPS:
+                        raise GrfAcceptanceError(message)
+                    if tool == "done":
                         return "retry"
             if shared.get("history"): save_memory(shared["workdir"], shared["history"])
             return "done"
