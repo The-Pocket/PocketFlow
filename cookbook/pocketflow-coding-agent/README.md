@@ -61,6 +61,37 @@ The agent operates in a loop:
 3. The chosen **tool node** executes the action and records the result
 4. Loop back to step 1 until the LLM calls `done` or max steps reached
 
+## Optional GRF acceptance gate
+
+The default `python main.py` behavior is unchanged. To require a GRF acceptance
+check before this agent treats the model's `done` response as complete, first
+initialize GRF in the generated `test_project` and sign in a task there. Keep
+the example's existing project check in GRF: configure the GRF acceptance
+check to run the same command used above,
+`python -m pytest test_tokenizer.py test_parser.py test_executor.py -v`,
+from `test_project` (for example, have `checks/acceptance.py` invoke that argv
+with `subprocess.run(..., cwd=project_root, check=True)`). Do not replace the
+project test command with an unrelated GRF-only check.
+
+Then run the agent with the opt-in flag:
+
+```bash
+python setup_test_project.py
+python /path/to/grf_starter.py init --intent "Implement the mini SQL engine and pass its tests" test_project
+cd test_project
+python grf.py session sign-in --task "Implement the mini SQL engine and pass its tests"
+cd ..
+python main.py --grf-acceptance
+```
+
+When the model says `done`, the agent runs the project-local `python grf.py
+check`. A failing check is appended to its history and the active GRF task is
+left open so the agent can repair the project. A passing check must include a
+real receipt; the agent passes that receipt and its result summary to the
+project-local `session complete` command. If GRF completion is rejected, the
+agent does not treat the task as complete. This is cooperative workflow
+gating, not a security boundary or proof that the checks are well designed.
+
 ## Files
 
 | File | Description |
