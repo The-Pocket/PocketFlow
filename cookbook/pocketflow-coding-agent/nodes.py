@@ -1,4 +1,5 @@
-import os, subprocess, re, json, difflib
+import os, subprocess, re, json, difflib, sys
+from pathlib import Path
 from pocketflow import Node, Flow
 from utils import call_llm
 
@@ -37,6 +38,11 @@ TOOL_DESC = """- list_files(directory='.') — List all files
 - done(result) — Task complete"""
 
 VALID_TOOLS = {"list_files", "grep_search", "read_file", "patch_file", "run_command"}
+
+
+class GrfAcceptanceError(RuntimeError):
+    """Raised when the GRF gate fails and the agent has no repair steps left."""
+
 
 class CompactHistory(Node):
     def prep(self, shared):
@@ -84,6 +90,17 @@ class DecideAction(Node):
         shared["step"] = step
         if tool == "done" or step >= MAX_STEPS:
             shared["result"] = exec_res.get("result", exec_res.get("args", {}).get("result", ""))
+            if shared.get("grf_acceptance"):
+                passed, message = complete_grf_task(shared["workdir"], shared["result"])
+                if not passed:
+                    shared.setdefault("history", []).append({
+                        "tool": "grf_acceptance", "args": {}, "result": message,
+                    })
+                    shared["result"] = message
+                    if step >= MAX_STEPS:
+                        raise GrfAcceptanceError(message)
+                    if tool == "done":
+                        return "retry"
             if shared.get("history"): save_memory(shared["workdir"], shared["history"])
             return "done"
         print(f"  🔧 [{step}] {tool} — {exec_res.get('reason', '')}")
@@ -143,6 +160,35 @@ class RunCommand(ToolNode):
         args, workdir = inputs
         r = subprocess.run(args["cmd"], shell=True, capture_output=True, text=True, cwd=workdir, timeout=30)
         return (r.stdout + r.stderr) or "(no output)"
+
+
+def complete_grf_task(workdir, summary):
+    """Run the project's opt-in GRF acceptance gate before completing its task."""
+    check = subprocess.run(
+        [sys.executable, "grf.py", "check"],
+        capture_output=True, text=True, cwd=workdir, timeout=120,
+    )
+    output = (check.stdout + check.stderr).strip()
+    if check.returncode:
+        return False, f"GRF acceptance failed; task remains active. Repair the reported checks and retry.\n{output}"
+    try:
+        result = json.loads(check.stdout)
+        receipt = result["receipt"]
+        receipt_path = (Path(workdir) / receipt).resolve()
+        receipt_path.relative_to(Path(workdir).resolve())
+        if result.get("result") != "PASS" or not receipt_path.is_file():
+            raise ValueError("missing passing receipt")
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        return False, f"GRF check did not return a usable passing receipt; task remains active.\n{output}"
+
+    completed = subprocess.run(
+        [sys.executable, "grf.py", "session", "complete",
+         "--evidence", receipt, "--summary", str(summary or "Acceptance checks passed")],
+        capture_output=True, text=True, cwd=workdir, timeout=30,
+    )
+    if completed.returncode:
+        return False, "GRF acceptance passed, but task completion was rejected; task remains active.\n" + (completed.stdout + completed.stderr).strip()
+    return True, (completed.stdout + completed.stderr).strip()
 
 # patch_file as SubFlow
 class PatchRead(Node):
