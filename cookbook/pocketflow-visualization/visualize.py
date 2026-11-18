@@ -224,11 +224,26 @@ def create_d3_visualization(
     Returns:
         str: Path to the HTML file
     """
+    if not filename or "/" in filename or "\\" in filename:
+        raise ValueError("filename must be a single base name")
+
+    output_dir = Path(output_dir).resolve()
+
+    def output_path(extension):
+        path = (output_dir / f"{filename}.{extension}").resolve()
+        try:
+            path.relative_to(output_dir)
+        except ValueError as exc:
+            raise ValueError("visualization files must stay inside output_dir") from exc
+        return path
+
+    json_path = output_path("json")
+    html_path = output_path("html")
+
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
     # Save JSON data to file
-    json_path = os.path.join(output_dir, f"{filename}.json")
     with open(json_path, "w") as f:
         json.dump(json_data, f, indent=2)
 
@@ -821,7 +836,6 @@ def create_d3_visualization(
     html_content = html_content.replace("TITLE_PLACEHOLDER", html_title)
 
     # Write HTML to file
-    html_path = os.path.join(output_dir, f"{filename}.html")
     with open(html_path, "w") as f:
         f.write(html_content)
 
