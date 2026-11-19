@@ -64,25 +64,24 @@ class CompileChart(Node):
                 text=True,
                 timeout=60
             )
+            svg_exists = os.path.exists(svg_path)
+            if result.returncode != 0 or not svg_exists:
+                error = result.stderr or result.stdout
+                # Extract the most relevant error lines
+                lines = error.split("\n")
+                clean = [l for l in lines if "Parse error" in l or "Expecting" in l or "Error" in l]
+                clean_error = "\n".join(clean[:3]) if clean else error[:500]
+                return {"success": False, "error": clean_error}
+
+            return {"success": True}
         except subprocess.TimeoutExpired:
-            os.unlink(mmd_path)
             return {"success": False, "error": "Compilation timed out after 60 seconds"}
-
-        # Clean up temp files
-        os.unlink(mmd_path)
-        svg_exists = os.path.exists(svg_path)
-        if svg_exists:
-            os.unlink(svg_path)
-
-        if result.returncode != 0 or not svg_exists:
-            error = result.stderr or result.stdout
-            # Extract the most relevant error lines
-            lines = error.split("\n")
-            clean = [l for l in lines if "Parse error" in l or "Expecting" in l or "Error" in l]
-            clean_error = "\n".join(clean[:3]) if clean else error[:500]
-            return {"success": False, "error": clean_error}
-
-        return {"success": True}
+        finally:
+            for path in (mmd_path, svg_path):
+                try:
+                    os.unlink(path)
+                except FileNotFoundError:
+                    pass
 
     def post(self, shared, prep_res, exec_res):
         if exec_res["success"]:
