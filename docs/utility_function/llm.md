@@ -92,6 +92,21 @@ Here, we provide some minimal example implementations:
         return r.choices[0].message.content
     ```
 
+7. NVIDIA NIM
+    ```python
+    def call_llm(prompt):
+        import os
+        from openai import OpenAI
+        client = OpenAI(api_key=os.environ["NVIDIA_API_KEY"], base_url="https://integrate.api.nvidia.com/v1")
+        r = client.chat.completions.create(
+            model="nvidia/nemotron-3.5-super-vl-120b-a12b",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return r.choices[0].message.content
+    ```
+    > For a self-hosted NIM, set `base_url` to your own endpoint (for example `http://localhost:8000/v1`).
+    {: .note }
+
 
 ## Improvements
 Feel free to enhance your `call_llm` function as needed. Here are examples:
