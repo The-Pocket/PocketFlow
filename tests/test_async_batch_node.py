@@ -40,6 +40,16 @@ class AsyncSumReduceNode(AsyncNode):
         return "reduced"
 
 class TestAsyncBatchNode(unittest.TestCase):
+    def test_default_prep_is_an_empty_batch(self):
+        class EmptyBatch(AsyncBatchNode):
+            async def exec_async(self, item):
+                raise AssertionError("There should be no items to execute")
+
+            async def post_async(self, shared, prep_result, exec_result):
+                return exec_result
+
+        self.assertEqual(asyncio.run(EmptyBatch().run_async({})), [])
+
     def test_array_chunking(self):
         """
         Test that the array is correctly split into chunks and processed asynchronously
