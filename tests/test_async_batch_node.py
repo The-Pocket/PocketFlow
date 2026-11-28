@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from pocketflow import AsyncNode, AsyncBatchNode, AsyncFlow
+from pocketflow import AsyncNode, AsyncBatchNode, AsyncFlow, AsyncParallelBatchNode
 
 class AsyncArrayChunkNode(AsyncBatchNode):
     def __init__(self, chunk_size=10):
@@ -40,6 +40,35 @@ class AsyncSumReduceNode(AsyncNode):
         return "reduced"
 
 class TestAsyncBatchNode(unittest.TestCase):
+    def test_default_prep_is_an_empty_batch(self):
+        class EmptyBatch(AsyncBatchNode):
+            async def exec_async(self, item):
+                raise AssertionError("There should be no items to execute")
+
+            async def post_async(self, shared, prep_result, exec_result):
+                return exec_result
+
+        self.assertEqual(asyncio.run(EmptyBatch().run_async({})), [])
+
+    def test_batch_items_do_not_require_a_truth_value(self):
+        class IterableWithNoTruthValue(list):
+            def __bool__(self):
+                raise AssertionError("Batch iteration should not test the truth value")
+
+        for node_class in (AsyncBatchNode, AsyncParallelBatchNode):
+            with self.subTest(node_class=node_class):
+                class Batch(node_class):
+                    async def prep_async(self, shared):
+                        return IterableWithNoTruthValue([1, 2])
+
+                    async def exec_async(self, item):
+                        return item * 2
+
+                    async def post_async(self, shared, prep_result, exec_result):
+                        return exec_result
+
+                self.assertEqual(asyncio.run(Batch().run_async({})), [2, 4])
+
     def test_array_chunking(self):
         """
         Test that the array is correctly split into chunks and processed asynchronously

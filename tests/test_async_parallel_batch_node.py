@@ -24,6 +24,16 @@ class AsyncParallelNumberProcessor(AsyncParallelBatchNode):
         return "processed"
 
 class TestAsyncParallelBatchNode(unittest.TestCase):
+    def test_default_prep_is_an_empty_batch(self):
+        class EmptyBatch(AsyncParallelBatchNode):
+            async def exec_async(self, item):
+                raise AssertionError("There should be no items to execute")
+
+            async def post_async(self, shared, prep_result, exec_result):
+                return exec_result
+
+        self.assertEqual(asyncio.run(EmptyBatch().run_async({})), [])
+
     def setUp(self):
         # Reset the event loop for each test
         self.loop = asyncio.new_event_loop()
